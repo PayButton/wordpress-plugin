@@ -1,0 +1,56 @@
+/* File: assets/css/sticky-header.css */
+/**
+ * Sticky Header Styles for PayButton Plugin.
+ */
+ #cashtab-sticky-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: var(--sticky-header-bg-color, #007bff);
+    color: var(--sticky-header-text-color, #fff);
+    text-align: center;
+    padding: 8px 16px;
+    z-index: 9999;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+#cashtab-sticky-header #loginPaybutton {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+}
+.logged-in-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 0 auto;
+}
+.profile-button, .logout-button {
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+}
+.profile-button {
+    background-color: var(--profile-button-bg-color, #ffc107);
+    color: var(--profile-button-text-color, #000);
+}
+.profile-button:hover {
+    background-color: #e0a800;
+}
+.logout-button {
+    background-color: var(--logout-button-bg-color, #d9534f);
+    color: var(--logout-button-text-color, #fff);
+}
+.logout-button:hover {
+    background-color: #c9302c;
+}
+body {
+    padding-top: 80px !important;
+}
