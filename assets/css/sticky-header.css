@@ -2,41 +2,61 @@
 /**
  * Sticky Header Styles for PayButton Plugin.
  */
- #cashtab-sticky-header {
+
+/* The main sticky header container */
+#cashtab-sticky-header {
     position: fixed;
     top: 0;
     left: 0;
+    right: 0; /* ensures it spans full width */
+    margin: 0 auto; /* center horizontally if there's any leftover space */
     width: 100%;
+    box-sizing: border-box;
+
     background: var(--sticky-header-bg-color, #007bff);
     color: var(--sticky-header-text-color, #fff);
-    text-align: center;
-    padding: 8px 16px;
-    z-index: 9999;
     font-family: sans-serif;
+    z-index: 9999;
+    padding: 8px 16px;
+
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* allow items to wrap if needed on narrower screens */
+    text-align: center;
 }
+
+/* Ensures the "Login via Cashtab" paybutton is centered */
 #cashtab-sticky-header #loginPaybutton {
     display: flex;
     justify-content: center;
+    align-items: center;
     margin: 0 auto;
 }
+
+/* For the "Profile" & "Logout" buttons container */
 .logged-in-actions {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 12px;
+
+    /* let them wrap on narrow screens if needed */
+    flex-wrap: wrap;
     margin: 0 auto;
 }
-.profile-button, .logout-button {
+
+/* Basic styling for the Profile & Logout buttons */
+.profile-button,
+.logout-button {
     border: none;
     border-radius: 4px;
     padding: 6px 12px;
     font-size: 14px;
     cursor: pointer;
 }
+
+/* Profile button colors */
 .profile-button {
     background-color: var(--profile-button-bg-color, #ffc107);
     color: var(--profile-button-text-color, #000);
@@ -44,6 +64,8 @@
 .profile-button:hover {
     background-color: #e0a800;
 }
+
+/* Logout button colors */
 .logout-button {
     background-color: var(--logout-button-bg-color, #d9534f);
     color: var(--logout-button-text-color, #fff);
@@ -51,6 +73,24 @@
 .logout-button:hover {
     background-color: #c9302c;
 }
+
+/* Prevent header from overlapping content */
 body {
     padding-top: 80px !important;
+}
+
+/* --- Mobile adjustments to ensure everything is centered and stacked --- */
+@media (max-width: 480px) {
+    #cashtab-sticky-header {
+        flex-direction: column; /* stack items vertically on small screens */
+    }
+    #cashtab-sticky-header #loginPaybutton,
+    .logged-in-actions {
+        width: 100%;
+        justify-content: center;
+        margin-top: 8px;
+    }
+    .profile-button, .logout-button {
+        margin: 4px 0;
+    }
 }
