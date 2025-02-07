@@ -1,0 +1,8 @@
+=== PayButton ===
+Contributors: PayButton
+Donate link: https://donate.paybutton.org/
+Tested up to: 6.7.1
+License: MIT
+License URI: https://github.com/PayButton/wordpress-plugin/blob/master/LICENSE
+
+Monetize your content with configurable no-signup paywalls.
