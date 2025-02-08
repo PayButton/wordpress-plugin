@@ -53,10 +53,10 @@ function renderLoginPaybutton() {
             console.log('Login Payment TX:', tx);
             if (tx && tx.inputAddresses && tx.inputAddresses.length > 0) {
                 const userAddress = tx.inputAddresses[0];
-                // Add a 2000 ms delay before processing the login so that the PB's ding sound dosen't get cutoff.
+                // Add a 2250 ms delay before processing the login so that the PB's ding sound dosen't get cutoff.
                 setTimeout(function(){
                     handleLogin(userAddress);
-                }, 2000);
+                }, 2250);
             }
         }
     });
