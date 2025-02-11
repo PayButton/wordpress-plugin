@@ -61,7 +61,8 @@ jQuery(document).ready(function($) {
             hoverText: configData.hoverText,
             successText: configData.successText,
             onSuccess: configData.onSuccess,
-            theme: configData.theme
+            theme: configData.theme,
+            opReturn: configData.opReturn //This is a hack to give the PB server the post ID to send it back to WP's DB
         });
     });
 });

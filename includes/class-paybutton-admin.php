@@ -149,6 +149,8 @@ class PayButton_Admin {
             'logout_button_text_color'  => get_option( 'paybutton_logout_button_text_color', '#FFFFFF' ),
             // Blocklist
             'blocklist'                 => get_option( 'paybutton_blocklist', array() ),
+            //Public key
+            'paybutton_public_key'      => get_option( 'paybutton_public_key', '' ),
         );
         $this->load_admin_template( 'paywall-settings', $args );
     }
@@ -194,6 +196,11 @@ class PayButton_Admin {
             $blocklist = array_map( 'trim', explode( ',', $raw_blocklist ) );
             update_option( 'paybutton_blocklist', $blocklist );
         }
+        //Adding the new public key option
+        if ( isset( $_POST['paybutton_public_key'] ) ) {
+            $public_key = sanitize_text_field( $_POST['paybutton_public_key'] );
+            update_option( 'paybutton_public_key', $public_key );
+        }    
     }
 
     /**

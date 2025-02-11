@@ -55,6 +55,15 @@
                     </label>
                 </td>
             </tr>
+            <!--NEW Public Key input field-->
+            <tr>
+                <th scope="row"><label for="paybutton_public_key">PayButton Public Key</label></th>
+                <td>
+                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" 
+                        value="<?php echo esc_attr( get_option('paybutton_public_key', '') ); ?>">
+                    <p class="description">Enter your PayButton public key to verify Payment Trigger requests.</p>
+                </td>
+            </tr>
             <!-- Sticky Header Settings -->
             <tr>
                 <th colspan="2"><h2>Sticky Header Settings</h2></th>
