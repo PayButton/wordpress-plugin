@@ -171,6 +171,7 @@ class PayButton_Public {
                     'tertiary'  => $color_tertiary,
                 ),
             ),
+            'opReturn'    => (string) $post_id //This is a hack to give the PB server the post ID to send it back to WP's DB
         );
         ob_start(); //When ob_start() is called, PHP begins buffering all subsequent output instead of printing it to the browser.
         ?>

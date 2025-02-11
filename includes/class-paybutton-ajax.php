@@ -35,10 +35,110 @@ class PayButton_AJAX {
 
         add_action( 'wp_ajax_mark_payment_successful', array( $this, 'mark_payment_successful' ) );
         add_action( 'wp_ajax_nopriv_mark_payment_successful', array( $this, 'mark_payment_successful' ) );
+
+        add_action( 'wp_ajax_payment_trigger', array( $this, 'payment_trigger' ) );
+        add_action( 'wp_ajax_nopriv_payment_trigger', array( $this, 'payment_trigger' ) );
+    }
+    /**
+     * Payment Trigger Handler with Cryptographic Verification
+     *
+     * This endpoint is called directly by the PayButton server when a transaction is received.
+     * It validates the request using a cryptographic signature to ensure authenticity.
+     */
+    public function payment_trigger() {
+        // Read the raw request body
+        $raw_post_data = file_get_contents('php://input');
+
+        // Decode JSON data
+        $json_data = json_decode($raw_post_data, true);
+        if (!$json_data || !isset($json_data['signature']['signature']) || !isset($json_data['signature']['payload'])) {
+            wp_send_json_error(['message' => 'Invalid JSON format or missing signature.']);
+            return;
+        }
+
+        // Get the Public Key from plugin settings
+        $public_key = get_option('paybutton_public_key', '');
+        if (empty($public_key)) {
+            wp_send_json_error(['message' => 'Missing public key in plugin settings.']);
+            return;
+        }
+
+        // Extract signature and payload from nested JSON
+        $signature = $json_data['signature']['signature'];
+        $payload = $json_data['signature']['payload']; // This is the signed data
+
+        // Verify the signature
+        $verification_result = $this->verify_signature($payload, $signature, $public_key);
+        if (!$verification_result) {
+            wp_send_json_error(['message' => 'Signature verification failed.']);
+            return;
+        }
+
+        // Extract post_id from 'post_id' -> 'rawMessage'
+        $post_id = isset($json_data['post_id']['rawMessage']) ? intval($json_data['post_id']['rawMessage']) : 0;
+
+        // Extract transaction details
+        $tx_hash = $json_data['tx_hash'] ?? '';
+        $tx_amount = $json_data['tx_amount'] ?? '';
+        $tx_timestamp = $json_data['tx_timestamp'] ?? '';
+        $user_address = $json_data['user_address'][0] ?? '';
+
+        // Convert timestamp to MySQL datetime
+        $mysql_timestamp = is_numeric($tx_timestamp) ? gmdate('Y-m-d H:i:s', intval($tx_timestamp)) : '0000-00-00 00:00:00';
+
+        if ($post_id > 0 && !empty($user_address)) {
+            $is_logged_in = 0;
+
+            // Store the payment in the database
+            $this->store_unlock_in_db(
+                sanitize_text_field($user_address),
+                $post_id,
+                sanitize_text_field($tx_hash),
+                sanitize_text_field($tx_amount),
+                $mysql_timestamp,
+                $is_logged_in
+            );
+            wp_send_json_success();
+        } else {
+            wp_send_json_error(['message' => 'Missing post_id or user_address.']);
+        }
     }
 
+    // Verify the signature using the public key
+    private function verify_signature($payload, $signature, $public_key_hex) {
+        // Convert hex signature to binary
+        $binary_signature = hex2bin($signature);
+        if (!$binary_signature) {
+            return false;
+        }
+
+        // Convert hex public key to binary
+        $binary_public_key = hex2bin($public_key_hex);
+        if (!$binary_public_key) {
+            return false;
+        }
+
+        // If the public key is in DER format (44 bytes), extract the raw 32-byte key.
+        if (strlen($binary_public_key) === 44) {
+            $raw_public_key = substr($binary_public_key, 12);
+        } else {
+            $raw_public_key = $binary_public_key;
+        }
+
+        // Ensure payload is in exact binary format
+        $binary_payload = mb_convert_encoding($payload, 'ISO-8859-1', 'UTF-8');
+
+        // Verify signature using Sodium (Ed25519)
+        $verification = sodium_crypto_sign_verify_detached($binary_signature, $binary_payload, $raw_public_key);
+
+        if ($verification) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     /**
-     * The following functioon saves the 'loggged in via PayButton' user's eCash address 
+     * The following function saves the 'loggged in via PayButton' user's eCash address 
      * in a variable called cashtab_ecash_address from the handleLogin() method of the 
      * "paybutton-paywall-cashtab-login.js" file via AJAX.
      *
@@ -171,15 +271,17 @@ class PayButton_AJAX {
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
-        // $exists = $wpdb->get_var( $wpdb->prepare(
-        //     "SELECT id FROM $table_name WHERE ecash_address = %s AND post_id = %d LIMIT 1",
-        //     $address,
-        //     $post_id
-        // ) );
-        // if ( $exists ) {
-        //     return;
-        // }
+        // Check if the transaction already exists using tx hash
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_name WHERE tx_hash = %s LIMIT 1",
+            $tx_hash
+        ));
 
+        if ($exists) {
+            return; // Transaction already recorded, so we don't insert again.
+        }
+
+        // Insert the transaction if it's not already recorded
         $wpdb->insert(
             $table_name,
             array(
