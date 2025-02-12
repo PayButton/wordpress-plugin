@@ -38,7 +38,7 @@ class PayButton_Public {
     public function enqueue_public_assets() {
         wp_enqueue_style( 'paybutton-sticky-header', PAYBUTTON_PLUGIN_URL . 'assets/css/sticky-header.css', array(), '1.0' );
 
-        // Enqueue our new paywall styles
+        // Enqueue our new paywall styles 
         wp_enqueue_style( 'paywall-styles', PAYBUTTON_PLUGIN_URL . 'assets/css/paywall-styles.css', array(), '1.0' );
 
         // Add inline CSS variables.
