@@ -48,6 +48,11 @@ jQuery(document).ready(function($) {
                 },
                 success: function() {
                     setTimeout(function() {
+                        // Build the new URL with the hash
+                        var newUrl = location.href.split('#')[0] + '#unlocked';
+                        // Replace the current URL in the address bar without triggering a navigation
+                        window.history.replaceState(null, '', newUrl);
+                        // Force a reload
                         location.reload();
                     }, 2000);
                 }
@@ -65,4 +70,23 @@ jQuery(document).ready(function($) {
             opReturn: configData.opReturn //This is a hack to give the PB server the post ID to send it back to WP's DB
         });
     });
+});
+
+//Scrolling to the unlocked content indicator element when the page loads
+jQuery(document).ready(function($) {
+    // Check if the URL hash is '#unlocked'
+    if (window.location.hash === '#unlocked') {
+        // Find the unlocked indicator element
+        var $target = $('#unlocked');
+        if ($target.length) {
+            // Calculate the scroll offset to the sticky header's height.
+            var headerOffset = 80;
+            var targetOffset = $target.offset().top - headerOffset;
+            
+            // Animate scrolling to the calculated offset so that the unlocked content indicator is visible.
+            $('html, body').animate({
+                scrollTop: targetOffset
+            }, 500);
+        }
+    }
 });

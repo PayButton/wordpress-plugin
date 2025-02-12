@@ -37,6 +37,10 @@ class PayButton_Public {
      */
     public function enqueue_public_assets() {
         wp_enqueue_style( 'paybutton-sticky-header', PAYBUTTON_PLUGIN_URL . 'assets/css/sticky-header.css', array(), '1.0' );
+
+        // Enqueue your new paywall styles
+        wp_enqueue_style( 'paywall-styles', PAYBUTTON_PLUGIN_URL . 'assets/css/paywall-styles.css', array(), '1.0' );
+
         // Add inline CSS variables.
         $custom_css = "
             :root {
@@ -94,6 +98,8 @@ class PayButton_Public {
             'isUserLoggedIn' => ! empty( $_SESSION['cashtab_ecash_address'] ) ? 1 : 0,
             'userAddress'    => ! empty( $_SESSION['cashtab_ecash_address'] ) ? $_SESSION['cashtab_ecash_address'] : '',
             'defaultAddress' => get_option( 'paybutton_paywall_ecash_address', '' ),
+            //Localize the Unlocked Content Indicator variable
+            'scrollToUnlocked' => get_option( 'paybutton_scroll_to_unlocked', '1' ),
         ) );
     }
 
@@ -152,8 +158,17 @@ class PayButton_Public {
         ), $atts );
 
         $post_id = get_the_ID();
+        //Modified the unlocked content logic to add the unlock indicator when the content is unlocked
         if ( $this->post_is_unlocked( $post_id ) ) {
-            return do_shortcode( $content );
+            $indicator = '';
+            if ( get_option('paybutton_scroll_to_unlocked', '0') === '1' ) {
+                $indicator = '<div id="unlocked" class="unlocked-indicator">
+                                  <hr>
+                                  <p>Unlocked Content Below</p>
+                                  <hr>
+                              </div>';
+            }
+            return $indicator . do_shortcode( $content );
         }
         // Prepare configuration data for the PayButton.
         $config = array(

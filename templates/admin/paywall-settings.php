@@ -55,6 +55,16 @@
                     </label>
                 </td>
             </tr>
+            <!--NEW Unlocked Content Indicator Checkbox-->
+            <tr>
+                <th scope="row">Unlocked Content Indicator</th>
+                <td>
+                    <label>
+                        <input type="checkbox" name="paybutton_scroll_to_unlocked" value="1" <?php checked( get_option('paybutton_scroll_to_unlocked', '1'), '1' ); ?>>
+                        <span>After payment, show the unlocked content indicator and scroll to it</span>
+                    </label>
+                </td>
+            </tr>
             <!--NEW Public Key input field-->
             <tr>
                 <th scope="row"><label for="paybutton_public_key">PayButton Public Key</label></th>
