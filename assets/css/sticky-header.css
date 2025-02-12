@@ -17,7 +17,7 @@
     color: var(--sticky-header-text-color, #fff);
     font-family: sans-serif;
     z-index: 9999;
-    padding: 8px 16px;
+    padding: 4px 16px; /* reduced vertical padding for a better header */
 
     display: flex;
     justify-content: center;
@@ -31,7 +31,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto;
+    margin: 0;
 }
 
 /* For the "Profile" & "Logout" buttons container */
@@ -43,7 +43,7 @@
 
     /* let them wrap on narrow screens if needed */
     flex-wrap: wrap;
-    margin: 0 auto;
+    margin: 0;
 }
 
 /* Basic styling for the Profile & Logout buttons */
@@ -54,6 +54,9 @@
     padding: 6px 12px;
     font-size: 14px;
     cursor: pointer;
+    display: flex;         /* added for vertical centering */
+    align-items: center;   /* centers content vertically */
+    justify-content: center; /* centers content horizontally */
 }
 
 /* Profile button colors */
@@ -88,7 +91,6 @@ body {
     .logged-in-actions {
         width: 100%;
         justify-content: center;
-        margin-top: 8px;
     }
     .profile-button, .logout-button {
         margin: 4px 0;
