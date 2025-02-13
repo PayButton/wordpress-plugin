@@ -154,13 +154,13 @@ class PayButton_AJAX {
         }
         $address = sanitize_text_field( $_POST['address'] );
 
-        // Retrieve the blocklist and check the address
-        $blocklist = get_option( 'paybutton_blocklist', array() );
-        if ( in_array( $address, $blocklist ) ) {
+        // Retrieve the blacklist and check the address
+        $blacklist = get_option( 'paybutton_blacklist', array() );
+        if ( in_array( $address, $blacklist ) ) {
             wp_send_json_error( array( 'message' => 'This eCash address is blocked.' ) );
             return;
         }
-        // Blocklist End
+        // blacklist End
 
         $_SESSION['cashtab_ecash_address'] = $address;
         setcookie(
@@ -244,9 +244,9 @@ class PayButton_AJAX {
 
             // If we have any address to store, insert a record
             if ( ! empty( $address_to_store ) ) {
-                // Check blocklist again in case user isn't logged in
-                $blocklist = get_option( 'paybutton_blocklist', array() );
-                if ( in_array( $address_to_store, $blocklist ) ) {
+                // Check blacklist again in case user isn't logged in
+                $blacklist = get_option( 'paybutton_blacklist', array() );
+                if ( in_array( $address_to_store, $blacklist ) ) {
                     wp_send_json_error( array( 'message' => 'This eCash address is blocked.' ) );
                     return;
                 }

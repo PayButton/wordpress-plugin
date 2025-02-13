@@ -115,13 +115,13 @@
             <tr>
                 <th colspan="2"><h2>Advanced Settings</h2></th>
             </tr>
-            <!--Blocklist Field -->
+            <!--blacklist Field -->
             <tr>
-                <th scope="row"><label for="paybutton_blocklist">Blacklisted eCash Addresses (optional)</label></th>
+                <th scope="row"><label for="paybutton_blacklist">Blacklisted eCash Addresses (optional)</label></th>
                 <td>
-                    <textarea name="paybutton_blocklist" id="paybutton_blocklist" rows="4" cols="50"><?php
-                        // Convert the blocklist array into a comma-separated string for display
-                        echo esc_textarea( isset($blocklist) ? implode(', ', (array) $blocklist ) : '' );
+                    <textarea name="paybutton_blacklist" id="paybutton_blacklist" rows="4" cols="50"><?php
+                        // Convert the blacklist array into a comma-separated string for display
+                        echo esc_textarea( isset($blacklist) ? implode(', ', (array) $blacklist ) : '' );
                     ?></textarea>
                     <p class="description">Enter comma-separated eCash addresses to block from logging in via Cashtab.</p>
                 </td>

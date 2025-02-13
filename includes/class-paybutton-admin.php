@@ -147,8 +147,8 @@ class PayButton_Admin {
             'profile_button_text_color' => get_option( 'paybutton_profile_button_text_color', '#000000' ),
             'logout_button_bg_color'    => get_option( 'paybutton_logout_button_bg_color', '#d9534f' ),
             'logout_button_text_color'  => get_option( 'paybutton_logout_button_text_color', '#FFFFFF' ),
-            // Blocklist
-            'blocklist'                 => get_option( 'paybutton_blocklist', array() ),
+            // blacklist
+            'blacklist'                 => get_option( 'paybutton_blacklist', array() ),
             //Public key
             'paybutton_public_key'      => get_option( 'paybutton_public_key', '' ),
         );
@@ -192,11 +192,11 @@ class PayButton_Admin {
         // New unlocked content indicator option:
         update_option( 'paybutton_scroll_to_unlocked', isset( $_POST['paybutton_scroll_to_unlocked'] ) ? '1' : '0' );
 
-        // Save the blocklist
-        if ( isset( $_POST['paybutton_blocklist'] ) ) {
-            $raw_blocklist = sanitize_text_field( $_POST['paybutton_blocklist'] );
-            $blocklist = array_map( 'trim', explode( ',', $raw_blocklist ) );
-            update_option( 'paybutton_blocklist', $blocklist );
+        // Save the blacklist
+        if ( isset( $_POST['paybutton_blacklist'] ) ) {
+            $raw_blacklist = sanitize_text_field( $_POST['paybutton_blacklist'] );
+            $blacklist = array_map( 'trim', explode( ',', $raw_blacklist ) );
+            update_option( 'paybutton_blacklist', $blacklist );
         }
         //Adding the new public key option
         if ( isset( $_POST['paybutton_public_key'] ) ) {
