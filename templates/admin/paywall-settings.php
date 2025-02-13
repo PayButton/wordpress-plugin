@@ -65,15 +65,6 @@
                     </label>
                 </td>
             </tr>
-            <!--NEW Public Key input field-->
-            <tr>
-                <th scope="row"><label for="paybutton_public_key">PayButton Public Key</label></th>
-                <td>
-                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" 
-                        value="<?php echo esc_attr( get_option('paybutton_public_key', '') ); ?>">
-                    <p class="description">Enter your PayButton public key to verify Payment Trigger requests.</p>
-                </td>
-            </tr>
             <!-- Sticky Header Settings -->
             <tr>
                 <th colspan="2"><h2>Sticky Header Settings</h2></th>
@@ -120,19 +111,71 @@
                     <button type="button" onclick="document.getElementById('logout_button_text_color').value = '#fff';">Reset</button>
                 </td>
             </tr>
-
-            <!--Blocklist Field -->
+            <!--NEW Advanced Settings tab-->
             <tr>
-                <th scope="row"><label for="paybutton_blocklist">Blocklisted eCash Addresses</label></th>
+                <th colspan="2"><h2>Advanced Settings</h2></th>
+            </tr>
+            <!--blacklist Field -->
+            <tr>
+                <th scope="row"><label for="paybutton_blacklist">Blacklisted eCash Addresses (optional)</label></th>
                 <td>
-                    <textarea name="paybutton_blocklist" id="paybutton_blocklist" rows="4" cols="50"><?php
-                        // Convert the blocklist array into a comma-separated string for display
-                        echo esc_textarea( isset($blocklist) ? implode(', ', (array) $blocklist ) : '' );
+                    <textarea name="paybutton_blacklist" id="paybutton_blacklist" rows="4" cols="50"><?php
+                        // Convert the blacklist array into a comma-separated string for display
+                        echo esc_textarea( isset($blacklist) ? implode(', ', (array) $blacklist ) : '' );
                     ?></textarea>
                     <p class="description">Enter comma-separated eCash addresses to block from logging in via Cashtab.</p>
                 </td>
             </tr>
-
+            <!--NEW Public Key input field-->
+            <tr>
+                <th scope="row">
+                    <label for="paybutton_public_key">PayButton Public Key (optional)</label>
+                </th>
+                <td>
+                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" value="<?php echo esc_attr( get_option('paybutton_public_key', '') ); ?>">
+                    <p class="description">
+                        Enter your PayButton public key to verify Payment Trigger requests.
+                    </p>
+                    <!-- User-Friendly Setup Guide -->
+                    <div class="paybutton-guide" style="margin-top: 15px; background: #f7f7f7; padding: 15px; border-left: 4px solid #0073aa;">
+                        <p><strong>Guide to Setup your PayButton Public Key:</strong></p>
+                        <p>
+                            1. Create an account on 
+                            <a href="https://paybutton.org/signup" target="_blank" rel="noopener noreferrer">PayButton.org</a> 
+                            and copy your public key from the <a href="https://paybutton.org/account" target="_blank" rel="noopener noreferrer">account page</a> and past it in the Public Key field above.
+                        </p>
+                        <p>
+                            2. <a href="https://paybutton.org/buttons" target="_blank" rel="noopener noreferrer">Create a button</a> 
+                            for your paywall receiving eCash address.
+                        </p>
+                        <p>
+                            3. Scroll down on the button page to the section <em>"When a Payment is Received..."</em>.
+                        </p>
+                        <p>
+                            4. In the URL field, paste the following:
+                        </p>
+                        <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;"><?php echo esc_url( home_url( '/wp-admin/admin-ajax.php?action=payment_trigger' ) ); ?></pre>
+                        <p>
+                            5. In the <em>Post Data</em> field, paste the following code as is:
+                        </p>
+                        <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;">
+{
+"signature": &lt;signature&gt;,
+"post_id": &lt;opReturn&gt;,
+"tx_hash": &lt;txId&gt;,
+"tx_amount": &lt;amount&gt;,
+"tx_timestamp": &lt;timestamp&gt;,
+"user_address": &lt;inputAddresses&gt;
+}</pre>
+                            <p>
+                                6. Save your button settings after pasting these values, and you're all set!
+                            </p>
+                            <p>
+                                <strong>Note:</strong> Enabling this feature is strongly recommended as it improves payment reliability, leveraging secure server-to-server messaging to record paywall transactions to your database.
+                            </p>
+                    </div>
+                </td>
+            </tr>
         </table>
         <p class="submit">
             <button type="submit" name="paybutton_paywall_save_settings" class="button button-primary">Save Changes</button>
