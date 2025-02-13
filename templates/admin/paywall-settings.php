@@ -142,17 +142,17 @@
                         <p>
                             1. Create an account on 
                             <a href="https://paybutton.org/signup" target="_blank" rel="noopener noreferrer">PayButton.org</a> 
-                            and copy your public key from the <a href="https://paybutton.org/account" target="_blank" rel="noopener noreferrer">account page</a> and past it in the Public Key field above.
+                            and copy your public key from the <a href="https://paybutton.org/account" target="_blank" rel="noopener noreferrer">account page</a> and paste it in the Public Key field above.
                         </p>
                         <p>
                             2. <a href="https://paybutton.org/buttons" target="_blank" rel="noopener noreferrer">Create a button</a> 
                             for your paywall receiving eCash address.
                         </p>
                         <p>
-                            3. Scroll down on the button page to the section <em>"When a Payment is Received..."</em>.
+                            3. Scroll down on the buttons page to the section <em>"When a Payment is Received..."</em>.
                         </p>
                         <p>
-                            4. In the URL field, paste the following:
+                            4. In the <em>URL</em> field, paste the following:
                         </p>
                         <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;"><?php echo esc_url( home_url( '/wp-admin/admin-ajax.php?action=payment_trigger' ) ); ?></pre>
                         <p>
