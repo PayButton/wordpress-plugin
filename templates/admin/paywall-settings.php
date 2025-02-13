@@ -117,7 +117,7 @@
             </tr>
             <!--Blocklist Field -->
             <tr>
-                <th scope="row"><label for="paybutton_blocklist">Blocklisted eCash Addresses (optional)</label></th>
+                <th scope="row"><label for="paybutton_blocklist">Blacklisted eCash Addresses (optional)</label></th>
                 <td>
                     <textarea name="paybutton_blocklist" id="paybutton_blocklist" rows="4" cols="50"><?php
                         // Convert the blocklist array into a comma-separated string for display
@@ -145,16 +145,16 @@
                             and copy your public key from the <a href="https://paybutton.org/account" target="_blank" rel="noopener noreferrer">account page</a> and past it in the Public Key field above.
                         </p>
                         <p>
-                            2. <a href="https://paybutton.org/button" target="_blank" rel="noopener noreferrer">Create a button</a> 
+                            2. <a href="https://paybutton.org/buttons" target="_blank" rel="noopener noreferrer">Create a button</a> 
                             for your paywall receiving eCash address.
                         </p>
                         <p>
                             3. Scroll down on the button page to the section <em>"When a Payment is Received..."</em>.
                         </p>
                         <p>
-                            4. In the URL field, paste the following, replacing <em>yoursite.com</em> with your website URL:
+                            4. In the URL field, paste the following:
                         </p>
-                        <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;">https://yoursite.com/wp-admin/admin-ajax.php?action=payment_trigger</pre>
+                        <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;"><?php echo esc_url( home_url( '/wp-admin/admin-ajax.php?action=payment_trigger' ) ); ?></pre>
                         <p>
                             5. In the <em>Post Data</em> field, paste the following code as is:
                         </p>
@@ -171,7 +171,7 @@
                                 6. Save your button settings after pasting these values, and you're all set!
                             </p>
                             <p>
-                                <strong>Note:</strong> Enabling this feature is strongly recommended as it improves reliability. Payment Trigger feature leverages secure, server-to-server messaging to record paywall transactions in your database.
+                                <strong>Note:</strong> Enabling this feature is strongly recommended as it improves payment reliability, leveraging secure server-to-server messaging to record paywall transactions to your database.
                             </p>
                     </div>
                 </td>
