@@ -45,7 +45,7 @@
                                     <td>(none)</td>
                                 <?php endif; ?>
                                 <td>
-                                    <?php echo $row->is_logged_in ? 'true' : 'false'; ?>
+                                    <?php echo esc_html( $row->is_logged_in ? 'true' : 'false' ); ?>
                                 </td>
                             </tr>
                         <?php endif;
@@ -55,7 +55,7 @@
         <?php else: ?>
             <p>No unlocked content found.</p>
         <?php endif; ?>
-        <p><a href="<?php echo admin_url( 'admin.php?page=paybutton-paywall-customers' ); ?>">← Back to Customers</a></p>
+        <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=paybutton-paywall-customers' ) ); ?>">← Back to Customers</a></p>
     <?php else: ?>
         <h1>Customers</h1>
         <p><strong>Total Customers:</strong> <?php echo intval( $total_customers ); ?></p>
@@ -79,10 +79,10 @@
         <table class="widefat fixed striped">
             <thead>
                 <tr>
-                    <th><?php echo sort_link( 'ecash_address', 'Customer', $orderby, $order, $base_url ); ?></th>
-                    <th><?php echo sort_link( 'unlocked_count', 'Unlocked Content', $orderby, $order, $base_url ); ?></th>
-                    <th><?php echo sort_link( 'total_paid', 'Total Paid (XEC)', $orderby, $order, $base_url ); ?></th>
-                    <th><?php echo sort_link( 'last_unlock_ts', 'Last Unlock', $orderby, $order, $base_url ); ?></th>
+                <th><?php echo wp_kses_post( sort_link( 'ecash_address', 'Customer', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( sort_link( 'unlocked_count', 'Unlocked Content', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( sort_link( 'total_paid', 'Total Paid (XEC)', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( sort_link( 'last_unlock_ts', 'Last Unlock', $orderby, $order, $base_url ) ); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -106,7 +106,7 @@
                                     ;
                                 ?>
                             </td>
-                            <td><?php echo number_format( $row['total_paid'], 2 ); ?></td>
+                            <td><?php echo esc_html( number_format( $row['total_paid'], 2 ) ); ?></td>
                             <td>
                                 <?php
                                 // Convert MySQL datetime to something friendly
