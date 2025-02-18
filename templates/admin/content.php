@@ -1,8 +1,8 @@
 <!-- File: templates/admin/content.php -->
 <div class="wrap">
     <h1>Content</h1>
-    <p><strong>Total Content Unlocks: </strong><?php echo intval( $total_unlocks ); ?></p>
-    <p><strong>Total Earned (XEC):</strong> <?php echo number_format( $grand_total_earned, 2 ); ?></p>
+    <p><strong>Total Content Unlocks: </strong><?php echo esc_html( intval( $total_unlocks ) ); ?></p>
+    <p><strong>Total Earned (XEC):</strong> <?php echo esc_html( number_format( $grand_total_earned, 2 ) ); ?></p>
     <?php
     function sort_link_content( $col, $label, $orderby, $order, $base_url ) {
         $arrow = '';
@@ -22,9 +22,9 @@
     <table class="widefat fixed striped">
         <thead>
             <tr>
-                <th><?php echo sort_link_content( 'title', 'Content Title', $orderby, $order, $base_url ); ?></th>
-                <th><?php echo sort_link_content( 'unlock_count', 'Unlocks', $orderby, $order, $base_url ); ?></th>
-                <th><?php echo sort_link_content( 'total_earned', 'Total Earned (XEC)', $orderby, $order, $base_url ); ?></th>
+                <th><?php echo wp_kses_post( sort_link_content( 'title', 'Content Title', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( sort_link_content( 'unlock_count', 'Unlocks', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( sort_link_content( 'total_earned', 'Total Earned (XEC)', $orderby, $order, $base_url ) ); ?></th>
             </tr>
         </thead>
         <tbody>
@@ -45,7 +45,7 @@
                                 ;
                             ?>
                         </td>
-                        <td><?php echo number_format( $row['total_earned'], 2 ); ?></td>
+                        <td><?php echo esc_html( number_format( $row['total_earned'], 2 ) ); ?></td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
