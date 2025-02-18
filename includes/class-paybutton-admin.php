@@ -26,7 +26,7 @@ class PayButton_Admin {
             'manage_options',
             'paybutton',
             array( $this, 'dashboard_page' ),
-            'data:image/svg+xml;base64,' . base64_encode( $this->get_svg_icon() ), //Gets and sets the PayButton svg logo as the icon of the main menu
+            'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MC42NSA0OS4wOCI+PGcgZGF0YS1uYW1lPSJMYXllcl8yIj48cmVjdCB3aWR0aD0iOTAuNjUiIGhlaWdodD0iNDkuMDgiIHJ4PSI5Ljk5IiByeT0iOS45OSIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0zMi45NiAyMS42MmMtLjYxIDEuMS0xLjU1IDEuOTktMi44MSAyLjY2LTEuMjYuNjgtMi44MyAxLjAxLTQuNyAxLjAxaC0zLjQ2djguMjNoLTUuNThWMTAuNmg5LjA1YzEuODMgMCAzLjM4LjMyIDQuNjQuOTVzMi4yMSAxLjUgMi44NCAyLjYxLjk1IDIuMzguOTUgMy44MmMwIDEuMzMtLjMxIDIuNTQtLjkyIDMuNjR6bS01LjU1LTEuNTJjLjUyLS41Ljc4LTEuMjEuNzgtMi4xMnMtLjI2LTEuNjItLjc4LTIuMTItMS4zMi0uNzUtMi4zOC0uNzVoLTMuMDR2NS43NWgzLjA0YzEuMDcgMCAxLjg2LS4yNSAyLjM4LS43NVptOS4zMi0uNjVjLjcxLTEuNDIgMS42Ny0yLjUgMi44OS0zLjI3cTEuODMtMS4xNCA0LjA4LTEuMTRjMS4yOCAwIDIuNDEuMjYgMy4zOC43OHMxLjcxIDEuMjEgMi4yNCAyLjA2VjE1LjNoNS41OHYxOC4yMmgtNS41OHYtMi41OGMtLjU0Ljg1LTEuMyAxLjU0LTIuMjcgMi4wNnMtMi4xLjc4LTMuMzguNzhjLTEuNDMuMDEtMi44NC0uMzktNC4wNS0xLjE2LTEuMjItLjc3LTIuMTgtMS44Ny0yLjg5LTMuM3MtMS4wNi0zLjA4LTEuMDYtNC45NS4zNS0zLjUyIDEuMDYtNC45M1ptMTEuNDMgMS42N2MtLjc3LS44LTEuNzEtMS4yMS0yLjgzLTEuMjFzLTIuMDUuNC0yLjgzIDEuMTljLS43Ny43OS0xLjE2IDEuODktMS4xNiAzLjI4cy4zOSAyLjUgMS4xNiAzLjMxYy43Ny44MiAxLjcxIDEuMjIgMi44MyAxLjIyczIuMDUtLjQgMi44My0xLjIxYy43Ny0uODEgMS4xNi0xLjkxIDEuMTYtMy4zcy0uMzktMi40OS0xLjE2LTMuM3ptMjkuNDEtNS44Mkw2Ni4xNCA0Mi4xOGgtNi4wMWw0LjE4LTkuMjgtNy40MS0xNy42aDYuMjRsNC4yMSAxMS40IDQuMTgtMTEuNHoiLz48L2c+PC9zdmc+', //Sets the PayButton SVG (base64 encoded) logo as the icon of the main menu
             100
         );
 
@@ -71,23 +71,6 @@ class PayButton_Admin {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );
         }
-    }
-
-    /**
-     * Get the PayButton SVG icon markup.
-     *
-     * @return string
-     */
-    private function get_svg_icon() {
-        return '<svg id="Layer_2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.65 49.08">
-                    <defs><style>.cls-1 { fill: none; }</style></defs>
-                    <g id="Layer_2-2" data-name="Layer_2">
-                        <g id="Layer_1-2">
-                            <rect class="cls-1" width="90.65" height="49.08" rx="9.99" ry="9.99"/>
-                            <path d="M32.96,21.62c-.61,1.1-1.55,1.99-2.81,2.66-1.26.68-2.83,1.01-4.7,1.01h-3.46v8.23h-5.58V10.6h9.05c1.83,0,3.38.32,4.64.95,1.26.63,2.21,1.5,2.84,2.61s.95,2.38.95,3.82c0,1.33-.31,2.54-.92,3.64,0,0,0,0-.01,0ZM27.41,20.1c.52-.5.78-1.21.78-2.12s-.26-1.62-.78-2.12-1.32-.75-2.38-.75h-3.04v5.75h3.04c1.07,0,1.86-.25,2.38-.75h0ZM36.73,19.45c.71-1.42,1.67-2.5,2.89-3.27,1.22-.76,2.58-1.14,4.08-1.14,1.28,0,2.41.26,3.38.78.97.52,1.71,1.21,2.24,2.06v-2.58h5.58v18.22h-5.58v-2.58c-.54.85-1.3,1.54-2.27,2.06s-2.1.78-3.38.78c-1.43.01-2.84-.39-4.05-1.16-1.22-.77-2.18-1.87-2.89-3.3-.71-1.43-1.06-3.08-1.06-4.95s.35-3.52,1.06-4.93h0ZM48.16,21.12c-.77-.8-1.71-1.21-2.83-1.21s-2.05.4-2.83,1.19c-.77.79-1.16,1.89-1.16,3.28s.39,2.5,1.16,3.31c.77.82,1.71,1.22,2.83,1.22s2.05-.4,2.83-1.21c.77-.81,1.16-1.91,1.16-3.3s-.39-2.49-1.16-3.3c0,0,0,.02,0,.02ZM77.57,15.3l-11.43,26.88h-6.01l4.18-9.28-7.41-17.6h6.24l4.21,11.4,4.18-11.4s6.04,0,6.04,0Z"/>
-                        </g>
-                    </g>
-                </svg>';
     }
 
     /**
