@@ -63,4 +63,4 @@ add_action( 'plugins_loaded', function() {
 
     // Initialize AJAX handlers.
     new PayButton_AJAX();
-} );
+}, 1);  // Use a priority to ensure this runs before other actions that might depend on session data.
