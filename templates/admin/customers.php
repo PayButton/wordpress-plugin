@@ -1,4 +1,8 @@
 <!-- File: templates/admin/customers.php -->
+<?php
+    if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+?>
+
 <div class="wrap">
     <?php if ( isset( $user_address ) ): ?>
         <h1>Unlocked Content for: <a href="https://explorer.e.cash/address/<?php echo esc_attr( $user_address ); ?>" target="_blank"><?php echo esc_html( $user_address ); ?></a></h1>

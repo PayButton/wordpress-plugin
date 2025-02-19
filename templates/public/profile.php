@@ -1,4 +1,8 @@
 <!-- File: templates/public/profile.php -->
+<?php
+    if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+?>
+
 <div class="paybutton-profile">
     <p>
         <strong>eCash Address:</strong>

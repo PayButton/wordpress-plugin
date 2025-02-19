@@ -1,3 +1,8 @@
+<!--File: templates/admin/dashboard.php-->
+<?php
+    if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+?>
+
 <div class="wrap">
     <h1>PayButton</h1>
     <!-- New heading above the buttons -->

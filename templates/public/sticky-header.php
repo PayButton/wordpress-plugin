@@ -1,4 +1,8 @@
 <!-- File: templates/public/sticky-header.php -->
+<?php
+    if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+?>
+
 <div id="cashtab-sticky-header">
     <?php if ( ! $address ): ?>
         <div id="loginPaybutton"></div>

@@ -1,4 +1,8 @@
 <!-- File: templates/admin/paywall-settings.php -->
+<?php
+    if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+?>
+
 <div class="wrap">
     <h1>Paywall Settings</h1>
     <?php if ( $settings_saved ): ?>
