@@ -61,7 +61,7 @@
         <p><strong>Total Customers:</strong> <?php echo intval( $total_customers ); ?></p>
         <p><strong>Total Earned (XEC):</strong> <?php echo number_format( $grand_total_xec, 2 ); ?> XEC</p>
         <?php
-        function sort_link( $col, $label, $orderby, $order, $base_url ) {
+        function paybutton_sort_customers_table( $col, $label, $orderby, $order, $base_url ) {
             $next_order = 'ASC';
             $arrow = '';
             if ( $orderby === $col ) {
@@ -79,10 +79,10 @@
         <table class="widefat fixed striped">
             <thead>
                 <tr>
-                <th><?php echo wp_kses_post( sort_link( 'ecash_address', 'Customer', $orderby, $order, $base_url ) ); ?></th>
-                <th><?php echo wp_kses_post( sort_link( 'unlocked_count', 'Unlocked Content', $orderby, $order, $base_url ) ); ?></th>
-                <th><?php echo wp_kses_post( sort_link( 'total_paid', 'Total Paid (XEC)', $orderby, $order, $base_url ) ); ?></th>
-                <th><?php echo wp_kses_post( sort_link( 'last_unlock_ts', 'Last Unlock', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'ecash_address', 'Customer', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'unlocked_count', 'Unlocked Content', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'total_paid', 'Total Paid (XEC)', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'last_unlock_ts', 'Last Unlock', $orderby, $order, $base_url ) ); ?></th>
                 </tr>
             </thead>
             <tbody>
