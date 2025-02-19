@@ -48,9 +48,11 @@ jQuery(document).ready(function($) {
                 },
                 success: function() {
                     setTimeout(function() {
-                        // Build the new URL with the hash
-                        var newUrl = location.href.split('#')[0] + '#unlocked';
-                        // Replace the current URL in the address bar without triggering a navigation
+                        // Get the base URL (without any query parameters or hash)
+                        var baseUrl = location.href.split('#')[0].split('?')[0];
+                        // Build a new URL that includes a timestamp parameter to bust caches
+                        var newUrl = baseUrl + '?t=' + Date.now() + '#unlocked';
+                        // Update the URL in the address bar without triggering a navigation
                         window.history.replaceState(null, '', newUrl);
                         // Force a reload
                         location.reload();

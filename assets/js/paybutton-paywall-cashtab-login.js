@@ -15,6 +15,10 @@ function handleLogin(address) {
             address: address
         },
         function() {
+            var baseUrl = location.href.split('?')[0];
+            // Build a new URL that includes a timestamp parameter to bust caches
+            var newUrl = baseUrl + '?t=' + Date.now();
+            window.history.replaceState(null, '', newUrl);
             location.reload();
         }
     );
