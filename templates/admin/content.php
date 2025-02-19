@@ -4,7 +4,7 @@
     <p><strong>Total Content Unlocks: </strong><?php echo esc_html( intval( $total_unlocks ) ); ?></p>
     <p><strong>Total Earned (XEC):</strong> <?php echo esc_html( number_format( $grand_total_earned, 2 ) ); ?></p>
     <?php
-    function sort_link_content( $col, $label, $orderby, $order, $base_url ) {
+    function paybutton_sort_content_table( $col, $label, $orderby, $order, $base_url ) {
         $arrow = '';
         $next_order = 'ASC';
         if ( $orderby === $col ) {
@@ -22,9 +22,9 @@
     <table class="widefat fixed striped">
         <thead>
             <tr>
-                <th><?php echo wp_kses_post( sort_link_content( 'title', 'Content Title', $orderby, $order, $base_url ) ); ?></th>
-                <th><?php echo wp_kses_post( sort_link_content( 'unlock_count', 'Unlocks', $orderby, $order, $base_url ) ); ?></th>
-                <th><?php echo wp_kses_post( sort_link_content( 'total_earned', 'Total Earned (XEC)', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_content_table( 'title', 'Content Title', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_content_table( 'unlock_count', 'Unlocks', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_content_table( 'total_earned', 'Total Earned (XEC)', $orderby, $order, $base_url ) ); ?></th>
             </tr>
         </thead>
         <tbody>

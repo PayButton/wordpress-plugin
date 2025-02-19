@@ -26,7 +26,7 @@ class PayButton_Public {
     public function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_public_assets' ) );
         add_action( 'wp_body_open', array( $this, 'output_sticky_header' ) );
-        add_shortcode( 'paywalled_content', array( $this, 'paywalled_content_shortcode' ) );
+        add_shortcode( 'paywalled_content', array( $this, 'paybutton_paywall_shortcode' ) );
         add_shortcode( 'paybutton_profile', array( $this, 'profile_shortcode' ) );
         add_filter( 'comments_open', array( $this, 'filter_comments_open' ), 999, 2 );
         add_action( 'pre_get_comments', array( $this, 'filter_comments_query' ), 999 );
@@ -137,7 +137,7 @@ class PayButton_Public {
      * Outputs a `div` with encoded PayButton config for front-end handling.
     */
 
-    public function paywalled_content_shortcode( $atts, $content = null ) {
+    public function paybutton_paywall_shortcode( $atts, $content = null ) {
         if ( ! is_singular() || ! in_the_loop() ) {
             return '';
         }
