@@ -1,4 +1,8 @@
 <!-- File: templates/admin/content.php -->
+<?php
+    if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+?>
+
 <div class="wrap">
     <h1>Content</h1>
     <p><strong>Total Content Unlocks: </strong><?php echo esc_html( intval( $total_unlocks ) ); ?></p>
