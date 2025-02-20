@@ -5,14 +5,14 @@ Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.0
-Stable tag: 2.0
+Stable tag: 2.1.0
 License: MIT
 License URI: https://github.com/PayButton/wordpress-plugin/blob/master/LICENSE
 
 Monetize your content with configurable no-signup paywalls.
 
 == Description ==
-PayButton transforms your WordPress site into a robust paywall platform. With its frictionless payment process, visitors pay via eCash (XEC) to unlock protected content immediately. Fully customizable through an intuitive admin dashboard, PayButton is perfect for bloggers, publishers, and content creators who want to monetize without the hassle of traditional payment gateways or user registration. PayButton offers an innovative and secure paywall solution for FREE! Enjoy a smooth user experience with instant content unlocking, customizable settings, and detailed transaction tracking, all with minimal setup.
+PayButton transforms your WordPress site into a robust paywall platform. With its frictionless payment process, visitors pay to unlock protected content immediately. Fully customizable through an intuitive admin dashboard, PayButton is perfect for bloggers, publishers, and content creators who want to monetize without the hassle of traditional payment gateways or user registration. Enjoy a smooth user experience with instant content unlocking, customizable settings, and detailed transaction tracking, all with minimal setup.
 
 == 🔥 FEATURES: ==
 
