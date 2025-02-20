@@ -96,7 +96,7 @@ class PayButton_Public {
             'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
             'nonce'          => wp_create_nonce( 'paybutton_paywall_nonce' ),
             'isUserLoggedIn' => ! empty( $_SESSION['cashtab_ecash_address'] ) ? 1 : 0,
-            'userAddress'    => ! empty( $_SESSION['cashtab_ecash_address'] ) ? $_SESSION['cashtab_ecash_address'] : '',
+            'userAddress'    => ! empty( $_SESSION['cashtab_ecash_address'] ) ? sanitize_text_field( $_SESSION['cashtab_ecash_address'] ) : '',
             'defaultAddress' => get_option( 'paybutton_paywall_ecash_address', '' ),
             //Localize the Unlocked Content Indicator variable
             'scrollToUnlocked' => get_option( 'paybutton_scroll_to_unlocked', '1' ),
@@ -235,7 +235,7 @@ class PayButton_Public {
             return true;
         }
         if ( ! empty( $_SESSION['cashtab_ecash_address'] ) ) {
-            $address = $_SESSION['cashtab_ecash_address'];
+            $address = sanitize_text_field( $_SESSION['cashtab_ecash_address'] );
             if ( $this->is_unlocked_in_db( $address, $post_id ) ) {
                 return true;
             }
