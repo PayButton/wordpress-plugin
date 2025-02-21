@@ -52,17 +52,20 @@ No – PayButton’s no-signup approach uses session tracking and database entri
 =03. Can I customize the appearance of the paywall?=
 Absolutely, the admin dashboard allows you to modify button texts, pricing, color schemes, and more to match your theme.
 
-=04. Is the PayButton plugin free?=
-Yes, the plugin is completely free and open-source.
-
 == Screenshots ==
 1. Admin Dashboard Overview
-2. Frontend Paywall in Action
-3. Customizable Paywall Settings
+2. Frontend PayButton Paywall in Action
+3. Customizable PayButton Paywall Settings
 4. PayButton Paywall Shortcode
 5. Transaction Tracking and Analytics
 
 == Changelog ==
+
+= 2.1.0 (2025/02/21) =
+* Improved session synchronization and implemented a cache busting mechanism.
+* Removed inline CSS and refactored generic function names for clarity.
+* Enhanced security: sanitized session data, escaped outputs, and added ABSPATH checks.
+* Updated the README for clearer documentation.
 
 = 2.0.0 (2025/02/13) =
 * New server-to-server messaging feature.
@@ -78,5 +81,5 @@ Yes, the plugin is completely free and open-source.
 
 == Upgrade Notice ==
 
-= 2.0.0 =
-Upgrade to version 2.0.0 to benefit from the new server-to-server messaging feature, improved header button centering, and the scroll-to-unlocked content feature.
+= 2.1.0 =
+Upgrade to version 2.1.0 for enhanced session handling, optimized cache busting, and improved security.
