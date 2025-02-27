@@ -57,7 +57,7 @@ class PayButton_Public {
         // Enqueue the PayButton core script.
         wp_enqueue_script(
             'paybutton-core',
-            'https://unpkg.com/@paybutton/paybutton/dist/paybutton.js',
+            PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton.js', // Local file path
             array(),
             '1.0',
             false
