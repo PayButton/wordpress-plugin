@@ -32,10 +32,6 @@ Monitor unlocked content, payment amounts, and user activity with comprehensive 
 Wrap your content in the `[paywalled_content]` shortcode to protect it, no coding knowledge required.
 
 
-== EXTERNAL DEPENDENCY NOTICE: ==
-PayButton relies on its core JavaScript library, which is loaded remotely from [https://unpkg.com/@paybutton/paybutton/dist/paybutton.js](https://unpkg.com/@paybutton/paybutton/dist/paybutton.js). This approach ensures that all users automatically receive the latest features and security updates without having to update the plugin manually. It also helps keep the plugin lightweight while still providing robust payment processing functionality. No additional accounts or configurations are needed.
-
-
 == DOCUMENTATION & SUPPORT ==
 * **[Documentation](https://docs.paybutton.org/)**
 * **[Support](https://t.me/paybutton)**
