@@ -57,6 +57,10 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 
 == Changelog ==
 
+= 2.2.0 (2025/02/28) =
+* The PayButton core JavaScript file is now bundled with the plugin.
+* The wp-admin?payment_trigger AJAX endpoint is now dynamically generated.
+
 = 2.1.0 (2025/02/21) =
 * Improved session synchronization and implemented a cache busting mechanism.
 * Removed inline CSS and refactored generic function names for clarity.
@@ -77,5 +81,6 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 
 == Upgrade Notice ==
 
-= 2.1.0 =
-Upgrade to version 2.1.0 for enhanced session handling, optimized cache busting, and improved security.
+= 2.2.0 =
+Upgrade to version 2.2.0 for improved compatibility and reliability.
+=======
