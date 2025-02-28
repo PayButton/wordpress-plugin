@@ -158,7 +158,7 @@
                         <p>
                             4. In the <em>URL</em> field, paste the following:
                         </p>
-                        <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;"><?php echo esc_url( home_url( '/wp-admin/admin-ajax.php?action=payment_trigger' ) ); ?></pre>
+                        <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;"><?php echo esc_url( admin_url( 'admin-ajax.php?action=payment_trigger' ) ); ?></pre>
                         <p>
                             5. In the <em>Post Data</em> field, paste the following code as is:
                         </p>
