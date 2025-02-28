@@ -6,6 +6,8 @@ Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.0
 Stable tag: 2.2.0
+PayButton Client: 4.1.0
+PayButton Client URI: https://github.com/PayButton/paybutton
 License: MIT
 License URI: https://github.com/PayButton/wordpress-plugin/blob/master/LICENSE
 
