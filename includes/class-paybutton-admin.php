@@ -67,6 +67,14 @@ class PayButton_Admin {
      * color selection functionality.
     */
     public function enqueue_admin_scripts( $hook_suffix ) {
+        // Enqueue the paybutton-admin.css on every admin page
+        wp_enqueue_style(
+            'paybutton-admin',
+            PAYBUTTON_PLUGIN_URL . 'assets/css/paybutton-admin.css',
+            array(),
+            '1.0'
+        );
+
         if ( $hook_suffix === 'toplevel_page_paybutton-paywall' ) {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );

@@ -1,0 +1,81 @@
+/* paybutton-admin.css */
+
+/* ------------------------------
+   Dashboard page styles
+------------------------------ */
+
+/* Container for the dashboard buttons */
+.paybutton-dashboard-buttons {
+    display: flex;
+    gap: 2rem !important;
+    margin-top: 2rem !important;
+    flex-wrap: wrap;
+}
+
+/* Each dashboard button box */
+.paybutton-dashboard-button {
+    flex: 1;
+    min-width: 250px !important;
+    border: 1px solid #ddd;
+    padding: 2rem !important;
+    text-align: center;
+}
+
+/* Disabled button style (e.g., for "Coming soon") */
+.paybutton-dashboard-button.disabled {
+    opacity: 0.5;
+}
+
+/* The link inside a button */
+.paybutton-dashboard-link {
+    font-size: 1.2em !important;
+    padding: 2rem !important;
+    display: inline-block;
+    width: 100%;
+}
+
+/* For text inside a button */
+.paybutton-dashboard-text {
+    font-size: 1.2em;
+    padding: 2rem;
+    margin: 0;
+}
+
+/* Container for the icons block */
+.paybutton-dashboard-icons {
+    margin-top: 2rem;
+    text-align: left;
+}
+
+/* Each icon link */
+.paybutton-dashboard-icon-link {
+    margin-right: 1rem;
+    text-decoration: none;
+    outline: none;
+}
+
+/* Icon images */
+.paybutton-dashboard-icon {
+    border: none;
+}
+
+/* ------------------------------
+   Customers and Content tables
+------------------------------ */
+table.widefat.fixed.striped {
+    table-layout: auto !important;
+    width: 100% !important;
+}
+
+table.widefat.fixed.striped th,
+table.widefat.fixed.striped td {
+    white-space: nowrap;
+    overflow: visible;
+}
+
+/* ------------------------------
+   Utility class for paragrah margin-top
+------------------------------ */
+.pb-paragraph-margin-top {
+    margin-top: 1rem;
+}
