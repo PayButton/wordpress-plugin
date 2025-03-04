@@ -5,7 +5,7 @@ Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.0
-Stable tag: 2.2.0
+Stable tag: 2.3.0
 PayButton Client: 4.1.0
 PayButton Client URI: https://github.com/PayButton/paybutton
 License: MIT
@@ -59,6 +59,11 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 
 == Changelog ==
 
+= 2.3.0 (2025/03/04) =
+* Created a new paybutton-admin.css file to centralize admin styles.
+* Updated table to auto-size columns.
+* Refactored dashboard.php and other admin templates to remove inline CSS, replacing them with appropriate CSS classes.
+
 = 2.2.0 (2025/02/28) =
 * The PayButton core JavaScript file is now bundled with the plugin.
 * The wp-admin?payment_trigger AJAX endpoint is now dynamically generated.
@@ -83,6 +88,6 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 
 == Upgrade Notice ==
 
-= 2.2.0 =
-Upgrade to version 2.2.0 for improved compatibility and reliability.
+= 2.2.0+ =
+Upgrade to version 2.2.0+ for improved compatibility and reliability.
 =======
