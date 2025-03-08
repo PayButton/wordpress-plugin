@@ -64,3 +64,14 @@ add_action( 'plugins_loaded', function() {
     // Initialize AJAX handlers.
     new PayButton_AJAX();
 }, 1);  // Use a priority to ensure this runs before other actions that might depend on session data.
+
+add_action('admin_init', function() {
+    if (get_option('paybutton_activation_redirect', false)) {
+        delete_option('paybutton_activation_redirect');
+        // Prevent redirect during bulk plugin activation
+        if (!isset($_GET['activate-multi'])) {
+            wp_redirect(admin_url('admin.php?page=paybutton-paywall'));
+            exit;
+        }
+    }
+});

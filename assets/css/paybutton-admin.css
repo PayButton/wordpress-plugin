@@ -60,6 +60,13 @@
 }
 
 /* ------------------------------
+   Paywall Settings page styles
+------------------------------ */
+#ecashAddressValidationResult {
+    margin-left: 10px;
+  }
+
+/* ------------------------------
    Customers and Content tables
 ------------------------------ */
 table.widefat.fixed.striped {

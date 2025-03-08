@@ -17,6 +17,8 @@ class PayButton_Activator {
     public static function activate() {
         self::create_tables();
         self::create_profile_page();
+        // Set a flag to redirect the admin to the Paywall Settings page after activation
+        update_option('paybutton_activation_redirect', true);
     }
 
     /**

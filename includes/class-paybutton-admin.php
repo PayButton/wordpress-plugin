@@ -14,6 +14,7 @@ class PayButton_Admin {
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'add_admin_menus' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+        add_action( 'admin_notices', array( $this, 'admin_notice_missing_ecash_address' ) );
     }
 
     /**
@@ -75,9 +76,18 @@ class PayButton_Admin {
             '1.0'
         );
 
-        if ( $hook_suffix === 'toplevel_page_paybutton-paywall' ) {
+        if ( $hook_suffix === 'paybutton_page_paybutton-paywall' ) {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );
+
+            // Enqueue the bundled address validator script
+            wp_enqueue_script(
+                'address-validator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
+                array(),
+                '2.0.0',
+                true
+            );
         }
     }
 
@@ -115,15 +125,17 @@ class PayButton_Admin {
     public function paywall_settings_page() {
         if ( isset( $_POST['paybutton_paywall_save_settings'] ) ) {
             $this->save_settings();
-            $settings_saved = true;
-        } else {
-            $settings_saved = false;
+            // Redirect to force a fresh load of the settings page with updated options.
+            wp_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
+            exit;
         }
+        
+        $settings_saved = ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] === 'true' );
 
         $args = array(
             'settings_saved'          => $settings_saved,
             'ecash_address'           => get_option( 'paybutton_paywall_ecash_address', '' ),
-            'default_price'           => get_option( 'paybutton_paywall_default_price', 10 ),
+            'default_price'           => get_option( 'paybutton_paywall_default_price', 5.5 ),
             'current_unit'            => get_option( 'paybutton_paywall_unit', 'XEC' ),
             'btn_text'                => get_option( 'paybutton_text', 'Pay to Unlock' ),
             'hvr_text'                => get_option( 'paybutton_hover_text', 'Send Payment' ),
@@ -146,6 +158,17 @@ class PayButton_Admin {
         $this->load_admin_template( 'paywall-settings', $args );
     }
 
+    public function admin_notice_missing_ecash_address() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        $address = get_option('paybutton_paywall_ecash_address', '');
+        if (empty($address)) {
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>PayButton:</strong> Please set your eCash Address in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>. If you don\'t have an eCash Address yet, create a wallet using <a href="https://cashtab.com">Cashtab</a> or <a href="https://www.bitcoinabc.org/electrum/">Electrum ABC</a>.</p>';
+            echo '</div>';
+        }
+    }
     /**
      * Save settings submitted via the Paywall Settings page.
      */
