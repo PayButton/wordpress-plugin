@@ -1,6 +1,13 @@
 <!-- File: templates/public/sticky-header.php -->
 <?php
     if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+    // Check if the admin has set an eCash address
+    $admin_ecash_address = get_option('paybutton_paywall_ecash_address', '');
+    if ( empty( $admin_ecash_address ) ) {
+        // If no valid address is set, do not display the sticky header.
+        return;
+    }
 ?>
 
 <div id="cashtab-sticky-header">

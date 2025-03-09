@@ -11,12 +11,17 @@
     <form method="post">
         <table class="form-table">
             <tr>
-                <th scope="row"><label for="ecash_address">eCash Address</label></th>
-                <td><input type="text" name="ecash_address" id="ecash_address" class="regular-text" value="<?php echo esc_attr( $ecash_address ); ?>"></td>
+                <th scope="row"><label for="ecash_address">eCash Address (required)</label></th>
+                <td>
+                    <input type="text" name="ecash_address" id="ecash_address" class="regular-text" value="<?php echo esc_attr( $ecash_address ); ?>" required>
+                    <!-- This span will be populated by our bundled address validator JS -->
+                    <span id="ecashAddressValidationResult"></span>
+                    <p class="description">Enter your wallet address to receive paywall payments.</p>
+                </td>
             </tr>
             <tr>
                 <th scope="row"><label for="default_price">Default Price</label></th>
-                <td><input type="number" step="1" name="default_price" id="default_price" class="regular-text" value="<?php echo esc_attr( $default_price ); ?>">
+                <td><input type="number" step="any" name="default_price" id="default_price" class="regular-text" value="<?php echo esc_attr( $default_price ); ?>">
                 <p class="description">Minimum 5.5 if using XEC.</p>
                 </td>
             </tr>
