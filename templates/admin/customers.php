@@ -63,7 +63,7 @@
     <?php else: ?>
         <h1>Customers</h1>
         <p><strong>Total Customers:</strong> <?php echo intval( $total_customers ); ?></p>
-        <p><strong>Total Earned (XEC):</strong> <?php echo number_format( $grand_total_xec, 2 ); ?> XEC</p>
+        <p><strong>Total Earned:</strong> <?php echo number_format( $grand_total_xec, 2 ); ?> XEC</p>
         <?php
         function paybutton_sort_customers_table( $col, $label, $orderby, $order, $base_url ) {
             $next_order = 'ASC';
@@ -83,7 +83,7 @@
         <table class="widefat fixed striped">
             <thead>
                 <tr>
-                <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'ecash_address', 'Customer', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'pb_paywall_user_wallet_address', 'Customer', $orderby, $order, $base_url ) ); ?></th>
                 <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'unlocked_count', 'Unlocked Content', $orderby, $order, $base_url ) ); ?></th>
                 <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'total_paid', 'Total Paid (XEC)', $orderby, $order, $base_url ) ); ?></th>
                 <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'last_unlock_ts', 'Last Unlock', $orderby, $order, $base_url ) ); ?></th>
@@ -94,13 +94,13 @@
                     <?php foreach ( $customers as $row ): 
                         $detail_link = add_query_arg( array(
                             'page'    => 'paybutton-paywall-customers',
-                            'address' => $row['ecash_address']
+                            'address' => $row['pb_paywall_user_wallet_address']
                         ), admin_url( 'admin.php' ) );
                         ?>
                         <tr>
                             <td>
                                 <a href="<?php echo esc_url( $detail_link ); ?>">
-                                    <?php echo esc_html( $row['ecash_address'] ); ?>
+                                    <?php echo esc_html( $row['pb_paywall_user_wallet_address'] ); ?>
                                 </a>
                             </td>
                             <td>

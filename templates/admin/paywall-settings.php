@@ -11,11 +11,12 @@
     <form method="post">
         <table class="form-table">
             <tr>
-                <th scope="row"><label for="ecash_address">eCash Address (required)</label></th>
+                <th scope="row"><label for="pb_paywall_admin_wallet_address">Wallet Address (required)</label></th>
                 <td>
-                    <input type="text" name="ecash_address" id="ecash_address" class="regular-text" value="<?php echo esc_attr( $ecash_address ); ?>" required>
+                    <!-- Using the new $admin_wallet_address variable -->
+                    <input type="text" name="pb_paywall_admin_wallet_address" id="pb_paywall_admin_wallet_address" class="regular-text" value="<?php echo esc_attr( $admin_wallet_address ); ?>" required>
                     <!-- This span will be populated by our bundled address validator JS -->
-                    <span id="ecashAddressValidationResult"></span>
+                    <span id="adminAddressValidationResult"></span>
                     <p class="description">Enter your wallet address to receive paywall payments.</p>
                 </td>
             </tr>
@@ -126,13 +127,13 @@
             </tr>
             <!--blacklist Field -->
             <tr>
-                <th scope="row"><label for="paybutton_blacklist">Blacklisted eCash Addresses (optional)</label></th>
+                <th scope="row"><label for="paybutton_blacklist">Blacklisted Addresses (optional)</label></th>
                 <td>
                     <textarea name="paybutton_blacklist" id="paybutton_blacklist" rows="4" cols="50"><?php
                         // Convert the blacklist array into a comma-separated string for display
                         echo esc_textarea( isset($blacklist) ? implode(', ', (array) $blacklist ) : '' );
                     ?></textarea>
-                    <p class="description">Enter comma-separated eCash addresses to block from logging in via Cashtab.</p>
+                    <p class="description">Enter comma-separated wallet addresses to block from logging in via Cashtab.</p>
                 </td>
             </tr>
             <!--NEW Public Key input field-->
@@ -141,7 +142,7 @@
                     <label for="paybutton_public_key">PayButton Public Key (optional)</label>
                 </th>
                 <td>
-                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" value="<?php echo esc_attr( get_option('paybutton_public_key', '') ); ?>">
+                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" value="<?php echo esc_attr( $paybutton_public_key ); ?>">
                     <p class="description">
                         Enter your PayButton public key to verify Payment Trigger requests.
                     </p>
@@ -155,7 +156,7 @@
                         </p>
                         <p>
                             2. <a href="https://paybutton.org/buttons" target="_blank" rel="noopener noreferrer">Create a button</a> 
-                            for your paywall receiving eCash address.
+                            for your paywall receiving wallet address.
                         </p>
                         <p>
                             3. Scroll down on the buttons page to the section <em>"When a Payment is Received..."</em>.

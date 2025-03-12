@@ -14,7 +14,9 @@ class PayButton_Admin {
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'add_admin_menus' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-        add_action( 'admin_notices', array( $this, 'admin_notice_missing_ecash_address' ) );
+        add_action( 'admin_notices', array( $this, 'admin_notice_missing_wallet_address' ) );
+        // Process form submissions early
+        add_action( 'admin_init', array( $this, 'handle_save_settings' ) );
     }
 
     /**
@@ -58,6 +60,16 @@ class PayButton_Admin {
             array( $this, 'content_page' )
         );
     }
+
+    public function handle_save_settings() {
+        if ( isset( $_POST['paybutton_paywall_save_settings'] ) && current_user_can( 'manage_options' ) ) {
+            $this->save_settings();
+            // Flush the cache for the wallet address option
+            wp_cache_delete('pb_paywall_admin_wallet_address', 'options');
+            wp_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
+            exit;
+        }
+    }    
 
     /**
      * This function is hooked into the admin_enqueue_scripts action. It receives a
@@ -123,18 +135,12 @@ class PayButton_Admin {
      * Output the Paywall Settings page.
      */
     public function paywall_settings_page() {
-        if ( isset( $_POST['paybutton_paywall_save_settings'] ) ) {
-            $this->save_settings();
-            // Redirect to force a fresh load of the settings page with updated options.
-            wp_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
-            exit;
-        }
         
         $settings_saved = ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] === 'true' );
 
         $args = array(
             'settings_saved'          => $settings_saved,
-            'ecash_address'           => get_option( 'paybutton_paywall_ecash_address', '' ),
+            'admin_wallet_address'    => get_option( 'pb_paywall_admin_wallet_address', '' ),
             'default_price'           => get_option( 'paybutton_paywall_default_price', 5.5 ),
             'current_unit'            => get_option( 'paybutton_paywall_unit', 'XEC' ),
             'btn_text'                => get_option( 'paybutton_text', 'Pay to Unlock' ),
@@ -158,22 +164,27 @@ class PayButton_Admin {
         $this->load_admin_template( 'paywall-settings', $args );
     }
 
-    public function admin_notice_missing_ecash_address() {
+    public function admin_notice_missing_wallet_address() {
+        if (isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true') {
+            return;
+        }        
         if (!current_user_can('manage_options')) {
             return;
         }
-        $address = get_option('paybutton_paywall_ecash_address', '');
+
+        $address = get_option('pb_paywall_admin_wallet_address', '');
         if (empty($address)) {
             echo '<div class="notice notice-error">';
-            echo '<p><strong>PayButton:</strong> Please set your eCash Address in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>. If you don\'t have an eCash Address yet, create a wallet using <a href="https://cashtab.com">Cashtab</a> or <a href="https://www.bitcoinabc.org/electrum/">Electrum ABC</a>.</p>';
+            echo '<p><strong>PayButton:</strong> Please set your wallet address in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>. If you don\'t have an address yet, create a wallet using <a href="https://cashtab.com">Cashtab</a>, <a href="https://www.bitcoinabc.org/electrum/">Electrum ABC</a> or <a href="https://electroncash.org/">Electron Cash</a>.</p>';
             echo '</div>';
         }
     }
+
     /**
      * Save settings submitted via the Paywall Settings page.
      */
     private function save_settings() {
-        $address         = sanitize_text_field( $_POST['ecash_address'] );
+        $address         = sanitize_text_field( $_POST['pb_paywall_admin_wallet_address'] );
         $unit            = sanitize_text_field( $_POST['unit'] );
         $raw_price       = floatval( $_POST['default_price'] );
         $button_text     = sanitize_text_field( $_POST['paybutton_text'] );
@@ -187,7 +198,7 @@ class PayButton_Admin {
             $raw_price = 5.5;
         }
 
-        update_option( 'paybutton_paywall_ecash_address', $address );
+        update_option( 'pb_paywall_admin_wallet_address', $address );
         update_option( 'paybutton_paywall_unit', $unit );
         update_option( 'paybutton_paywall_default_price', $raw_price );
         update_option( 'paybutton_text', $button_text );
@@ -203,6 +214,7 @@ class PayButton_Admin {
         update_option( 'paybutton_profile_button_text_color', sanitize_hex_color( $_POST['profile_button_text_color'] ) ?: '#000' );
         update_option( 'paybutton_logout_button_bg_color', sanitize_hex_color( $_POST['logout_button_bg_color'] ) ?: '#d9534f' );
         update_option( 'paybutton_logout_button_text_color', sanitize_hex_color( $_POST['logout_button_text_color'] ) ?: '#FFFFFF' );
+
         // New unlocked content indicator option:
         update_option( 'paybutton_scroll_to_unlocked', isset( $_POST['paybutton_scroll_to_unlocked'] ) ? '1' : '0' );
 
@@ -233,7 +245,7 @@ class PayButton_Admin {
                 'rows' => $wpdb->get_results( $wpdb->prepare(
                     "SELECT /*DISTINCT*/ post_id, tx_amount, tx_hash, tx_timestamp, is_logged_in
                      FROM $table_name
-                     WHERE ecash_address = %s
+                     WHERE pb_paywall_user_wallet_address = %s
                      ORDER BY id DESC",
                     $user_address
                 ) )
@@ -242,7 +254,7 @@ class PayButton_Admin {
             return;
         }
 
-        $allowed_cols = array('ecash_address','unlocked_count','total_paid','last_unlock_ts');
+        $allowed_cols = array('pb_paywall_user_wallet_address','unlocked_count','total_paid','last_unlock_ts');
         $orderby = isset( $_GET['orderby'] ) ? sanitize_text_field( $_GET['orderby'] ) : 'unlocked_count';
         if ( ! in_array( $orderby, $allowed_cols ) ) {
             $orderby = 'unlocked_count';
@@ -254,20 +266,20 @@ class PayButton_Admin {
 
         // Modified to also count how many unlocks happened with is_logged_in=1
         $results = $wpdb->get_results("
-            SELECT ecash_address,
+            SELECT pb_paywall_user_wallet_address,
                    COUNT(post_id) AS unlocked_count,
                    SUM(tx_amount) AS total_paid,
                    SUM(CASE WHEN is_logged_in = 1 THEN 1 ELSE 0 END) AS unlocked_logged_in_count,
                    MAX(tx_timestamp) AS last_unlock_ts
             FROM $table_name
-            GROUP BY ecash_address
+            GROUP BY pb_paywall_user_wallet_address
         ");
 
         $customers = array();
         if ( ! empty( $results ) ) {
             foreach ( $results as $r ) {
                 $customers[] = array(
-                    'ecash_address'            => $r->ecash_address,
+                    'pb_paywall_user_wallet_address' => $r->pb_paywall_user_wallet_address,
                     'unlocked_count'           => (int) $r->unlocked_count,
                     'unlocked_logged_in_count' => (int) $r->unlocked_logged_in_count,
                     'total_paid'               => (float) $r->total_paid,
@@ -388,9 +400,9 @@ class PayButton_Admin {
             }
         } );
 
-        // Calculate the grand total of XEC earned across all content
+        // Calculate the grand total amount earned across all content
         $grand_total_earned = 0;
-            foreach ( $contentData as $row ) {
+        foreach ( $contentData as $row ) {
             $grand_total_earned += $row['total_earned'];
         }
 

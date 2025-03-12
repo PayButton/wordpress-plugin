@@ -752,15 +752,15 @@
     // src/addressValidator.js
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Find the eCash address input field by its ID.
-      const addressInput = document.getElementById('ecash_address');
+      // Find the wallet address input field by its ID.
+      const addressInput = document.getElementById('pb_paywall_admin_wallet_address');
       if (!addressInput) return;
       
       // Find or create a span for validation feedback.
-      let resultSpan = document.getElementById('ecashAddressValidationResult');
+      let resultSpan = document.getElementById('adminAddressValidationResult');
       if (!resultSpan) {
         resultSpan = document.createElement('span');
-        resultSpan.id = 'ecashAddressValidationResult';
+        resultSpan.id = 'adminAddressValidationResult';
         addressInput.parentNode.appendChild(resultSpan);
       }
       
@@ -771,7 +771,7 @@
       addressInput.addEventListener('input', () => {
         const address = addressInput.value.trim();
         if (address === "") {
-          resultSpan.textContent = '❌ Invalid eCash address';
+          resultSpan.textContent = '❌ Invalid address';
           resultSpan.style.color = 'red';
           if (saveButton) saveButton.disabled = true;
           return;
@@ -779,11 +779,11 @@
         
         const valid = cashaddrExports.isValidCashAddress(address);
         if (valid) {
-          resultSpan.textContent = '✅ Valid eCash address';
+          resultSpan.textContent = '✅ Valid address';
           resultSpan.style.color = 'green';
           if (saveButton) saveButton.disabled = false;
         } else {
-          resultSpan.textContent = '❌ Invalid eCash address';
+          resultSpan.textContent = '❌ Invalid address';
           resultSpan.style.color = 'red';
           if (saveButton) saveButton.disabled = true;
         }
