@@ -41,6 +41,10 @@ class PayButton_Public {
         // Enqueue our new paywall styles
         wp_enqueue_style( 'paywall-styles', PAYBUTTON_PLUGIN_URL . 'assets/css/paywall-styles.css', array(), '1.0' );
 
+        // Read the admin-chosen colors for the unlocked content indicator from options
+        $indicator_bg_color   = get_option('unlocked_indicator_bg_color', '#007bff');
+        $indicator_text_color = get_option('unlocked_indicator_text_color', '#ffffff');
+
         // Add inline CSS variables.
         $custom_css = "
             :root {
@@ -50,6 +54,8 @@ class PayButton_Public {
                 --profile-button-text-color: " . esc_attr( get_option('paybutton_profile_button_text_color', '#000') ) . ";
                 --logout-button-bg-color: " . esc_attr( get_option('paybutton_logout_button_bg_color', '#d9534f') ) . ";
                 --logout-button-text-color: " . esc_attr( get_option('paybutton_logout_button_text_color', '#fff') ) . ";
+                --pb-unlocked-bg: {$indicator_bg_color};
+                --pb-unlocked-text: {$indicator_text_color};
             }
         ";
         wp_add_inline_style( 'paybutton-sticky-header', $custom_css );
@@ -164,9 +170,7 @@ class PayButton_Public {
             $indicator = '';
             if ( get_option('paybutton_scroll_to_unlocked', '0') === '1' ) {
                 $indicator = '<div id="unlocked" class="unlocked-indicator">
-                                  <hr>
                                   <p>Unlocked Content Below</p>
-                                  <hr>
                               </div>';
             }
             return $indicator . do_shortcode( $content );
