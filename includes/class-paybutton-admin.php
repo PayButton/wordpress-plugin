@@ -88,6 +88,15 @@ class PayButton_Admin {
             '1.0'
         );
 
+        // Enqueue paybutton-admin.js on every admin pages
+        wp_enqueue_script(
+            'paybutton-admin-js',
+            PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-admin.js',
+            array('jquery'),
+            '1.0',
+            true
+        );
+
         if ( $hook_suffix === 'paybutton_page_paybutton-paywall' ) {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );
@@ -193,6 +202,8 @@ class PayButton_Admin {
         $color_secondary = sanitize_hex_color( $_POST['paybutton_color_secondary'] );
         $color_tertiary  = sanitize_hex_color( $_POST['paybutton_color_tertiary'] );
         $hide_comments   = isset( $_POST['paybutton_hide_comments_until_unlocked'] ) ? '1' : '0';
+        $unlocked_indicator_bg_color   = sanitize_hex_color( $_POST['unlocked_indicator_bg_color'] );
+        $unlocked_indicator_text_color = sanitize_hex_color( $_POST['unlocked_indicator_text_color'] );
 
         if ( $unit === 'XEC' && $raw_price < 5.5 ) {
             $raw_price = 5.5;
@@ -217,6 +228,9 @@ class PayButton_Admin {
 
         // New unlocked content indicator option:
         update_option( 'paybutton_scroll_to_unlocked', isset( $_POST['paybutton_scroll_to_unlocked'] ) ? '1' : '0' );
+        // Default to #007bff for background, #ffffff for text
+        update_option('unlocked_indicator_bg_color', $unlocked_indicator_bg_color ?: '#007bff');
+        update_option('unlocked_indicator_text_color', $unlocked_indicator_text_color ?: '#ffffff');
 
         // Save the blacklist
         if ( isset( $_POST['paybutton_blacklist'] ) ) {

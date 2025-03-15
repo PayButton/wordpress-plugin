@@ -75,6 +75,36 @@
                     </label>
                 </td>
             </tr>
+            <tbody id="unlockedIndicatorColors">
+                <tr>
+                    <th scope="row">
+                        <label for="unlocked_indicator_bg_color">Background Color</label>
+                    </th>
+                    <td>
+                        <input type="color" name="unlocked_indicator_bg_color" id="unlocked_indicator_bg_color"
+                            value="<?php echo esc_attr( get_option('unlocked_indicator_bg_color', '#007bff') ); ?>">
+                        <button type="button"
+                            onclick="document.getElementById('unlocked_indicator_bg_color').value = '#007bff';">
+                            Reset
+                        </button>
+                        <p class="description">Controls the background color of the indicator.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="unlocked_indicator_text_color">Text Color</label>
+                    </th>
+                    <td>
+                        <input type="color" name="unlocked_indicator_text_color" id="unlocked_indicator_text_color"
+                            value="<?php echo esc_attr( get_option('unlocked_indicator_text_color', '#ffffff') ); ?>">
+                        <button type="button"
+                            onclick="document.getElementById('unlocked_indicator_text_color').value = '#ffffff';">
+                            Reset
+                        </button>
+                        <p class="description">Controls the text color of the indicator.</p>
+                    </td>
+                </tr>
+            </tbody>
             <!-- Sticky Header Settings -->
             <tr>
                 <th colspan="2"><h2>Sticky Header Settings</h2></th>
