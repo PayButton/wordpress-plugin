@@ -18,7 +18,7 @@ class PayButton_AJAX {
      *   2) wp_ajax_nopriv_{action}
      *      - Fires if the visitor is not recognized as logged in by WordPress.
      *
-     * Since our plugin implements a separate "pay-to-login" process (storing eCash 
+     * Since our plugin implements a separate "pay-to-login" process (storing user wallet 
      * addresses in sessions), from WP’s point of view, most of our pay-to-login users 
      * are still not "logged in" in the standard WordPress sense.
      *
@@ -44,7 +44,7 @@ class PayButton_AJAX {
      *
      * This endpoint is called directly by the PayButton server when a transaction is received.
      * It validates the request using a cryptographic signature to ensure authenticity.
-     */
+    */
     public function payment_trigger() {
         // Read the raw request body
         $raw_post_data = file_get_contents('php://input');
@@ -138,15 +138,14 @@ class PayButton_AJAX {
         }
     }
     /**
-     * The following function saves the 'loggged in via PayButton' user's eCash address 
-     * in a variable called cashtab_ecash_address from the handleLogin() method of the 
-     * "paybutton-paywall-cashtab-login.js" file via AJAX.
+     * The following function saves the 'logged in via PayButton' user's wallet address 
+     * in a variable called pb_paywall_user_wallet_address from the handleLogin() method
+     * of the "paybutton-paywall-cashtab-login.js" file via AJAX.
      *
      * This function verifies the AJAX nonce for security, ensures a PHP session is active,
      * sanitizes the 'address' field from the POST data, and then stores it in both the session
-     * (under 'cashtab_ecash_address') and as a cookie (lasting 30 days).
+     * (under 'pb_paywall_user_wallet_address') and as a cookie (lasting 30 days).
     */
-
     public function save_address() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
         if ( ! session_id() ) {
@@ -157,14 +156,16 @@ class PayButton_AJAX {
         // Retrieve the blacklist and check the address
         $blacklist = get_option( 'paybutton_blacklist', array() );
         if ( in_array( $address, $blacklist ) ) {
-            wp_send_json_error( array( 'message' => 'This eCash address is blocked.' ) );
+            wp_send_json_error( array( 'message' => 'This wallet address is blocked.' ) );
             return;
         }
         // blacklist End
 
-        $_SESSION['cashtab_ecash_address'] = $address;
+        $_SESSION['pb_paywall_user_wallet_address'] = $address;
+
+        // Write the new cookie
         setcookie(
-            'cashtab_ecash_address',
+            'pb_paywall_user_wallet_address',
             $address,
             time() + 2592000,
             COOKIEPATH ?: '/',
@@ -172,6 +173,7 @@ class PayButton_AJAX {
             is_ssl(),
             true
         );
+
         wp_send_json_success( array( 'message' => 'Address stored in session & cookie' ) );
     }
 
@@ -179,18 +181,17 @@ class PayButton_AJAX {
      * Logs the user out via AJAX.
      *
      * This function verifies the AJAX nonce for security and ensures a PHP session is active.
-     * It then removes the stored 'cashtab_eCash_address' from the session and clears the corresponding cookie.
-     * Additionally, it unsets any session data tracking paid articles and sends a JSON success response.
+     * It then removes the stored 'pb_paywall_user_wallet_address' from the session and clears
+     * the corresponding cookie. Additionally, it unsets any session data tracking paid articles.
     */
-
     public function logout() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
         if ( ! session_id() ) {
             session_start();
         }
-        unset( $_SESSION['cashtab_ecash_address'] );
+        unset( $_SESSION['pb_paywall_user_wallet_address'] );
         setcookie(
-            'cashtab_ecash_address',
+            'pb_paywall_user_wallet_address',
             '',
             time() - 3600,
             COOKIEPATH ?: '/',
@@ -204,15 +205,7 @@ class PayButton_AJAX {
 
     /**
      * Marks a payment as successful and unlocks content.
-     *
-     * This function is triggered via AJAX when a payment succeeds. It performs three main tasks:
-     * 1. Sets a session flag (in $_SESSION['paid_articles']) to mark the current post as unlocked.
-     * 2. If an eCash address (cashtab_ecash_address) exists in the session 
-     *    (indicating the user is "logged in" via PayButton), it records the transaction details 
-     *    (post ID, transaction hash, amount, and timestamp) in the database by calling 
-     *    store_unlock_in_db(); otherwise, uses the address provided from the front end.
-     * 3. Prevents blocked addresses from being stored.
-    */
+     */
     public function mark_payment_successful() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
         if ( ! session_id() ) {
@@ -235,19 +228,18 @@ class PayButton_AJAX {
             // Mark this post as "unlocked" in the session
             $_SESSION['paid_articles'][ $post_id ] = true;
 
-            // Determine if user was "logged in" (i.e., session has a stored eCash address)
-            $is_logged_in = ! empty( $_SESSION['cashtab_ecash_address'] ) ? 1 : 0;
+            // Determine if user was "logged in" (i.e., session has a stored user wallet address)
+            $is_logged_in = ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? 1 : 0;
 
             // Decide which address to store:
-            // If logged in, store the session address. Otherwise, store the user_address from the front end.
-            $address_to_store = $is_logged_in ? sanitize_text_field( $_SESSION['cashtab_ecash_address'] ) : $user_address;
+            $address_to_store = $is_logged_in ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : $user_address;
 
             // If we have any address to store, insert a record
             if ( ! empty( $address_to_store ) ) {
                 // Check blacklist again in case user isn't logged in
                 $blacklist = get_option( 'paybutton_blacklist', array() );
                 if ( in_array( $address_to_store, $blacklist ) ) {
-                    wp_send_json_error( array( 'message' => 'This eCash address is blocked.' ) );
+                    wp_send_json_error( array( 'message' => 'This wallet address is blocked.' ) );
                     return;
                 }
 
@@ -266,7 +258,7 @@ class PayButton_AJAX {
 
     /**
      * Store the unlock information in the database.
-     */
+    */
     private function store_unlock_in_db( $address, $post_id, $tx_hash, $tx_amount, $tx_dt, $is_logged_in ) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
@@ -285,7 +277,7 @@ class PayButton_AJAX {
         $wpdb->insert(
             $table_name,
             array(
-                'ecash_address' => $address,
+                'pb_paywall_user_wallet_address' => $address,
                 'post_id'       => $post_id,
                 'tx_hash'       => $tx_hash,
                 'tx_amount'     => $tx_amount,

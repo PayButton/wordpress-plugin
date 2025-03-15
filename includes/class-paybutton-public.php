@@ -85,9 +85,9 @@ class PayButton_Public {
          * This code makes the following data available to the script as the global object "PaywallAjax":
          * - ajaxUrl: The URL (admin-ajax.php) to which AJAX requests should be sent.
          * - nonce: A security token generated via wp_create_nonce('paybutton_paywall_nonce') to validate AJAX requests.
-         * - isUserLoggedIn: A flag (1 if an eCash address exists in the session, 0 otherwise) indicating the payment-based login state.
-         * - userAddress: The eCash address stored in the session, or an empty string if not set.
-         * - defaultAddress: The default eCash address from the plugin settings.
+         * - isUserLoggedIn: A flag (1 if a user address exists in the session, 0 otherwise) indicating the payment-based login state.
+         * - userAddress: The user address stored in the session, or an empty string if not set.
+         * - defaultAddress: The default wallet address from the plugin settings.
          *
          * These localized variables allow the front-end script to safely and effectively communicate with the back-end.
         */
@@ -95,10 +95,9 @@ class PayButton_Public {
         wp_localize_script( 'paybutton-cashtab-login', 'PaywallAjax', array(
             'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
             'nonce'          => wp_create_nonce( 'paybutton_paywall_nonce' ),
-            'isUserLoggedIn' => ! empty( $_SESSION['cashtab_ecash_address'] ) ? 1 : 0,
-            'userAddress'    => ! empty( $_SESSION['cashtab_ecash_address'] ) ? sanitize_text_field( $_SESSION['cashtab_ecash_address'] ) : '',
-            'defaultAddress' => get_option( 'paybutton_paywall_ecash_address', '' ),
-            //Localize the Unlocked Content Indicator variable
+            'isUserLoggedIn' => ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? 1 : 0,
+            'userAddress'    => ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : '',
+            'defaultAddress' => get_option( 'pb_paywall_admin_wallet_address', '' ),
             'scrollToUnlocked' => get_option( 'paybutton_scroll_to_unlocked', '1' ),
         ) );
     }
@@ -118,8 +117,10 @@ class PayButton_Public {
      * Output the sticky header HTML.
      */
     public function output_sticky_header() {
-        $address = ! empty( $_SESSION['cashtab_ecash_address'] ) ? sanitize_text_field( $_SESSION['cashtab_ecash_address'] ) : '';
-        $this->load_public_template( 'sticky-header', array( 'address' => $address ) );
+        $user_wallet_address = ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : '';
+        $this->load_public_template( 'sticky-header', array(
+            'user_wallet_address' => $user_wallet_address
+        ) );
     }
 
     /**
@@ -151,7 +152,7 @@ class PayButton_Public {
 
         $atts = shortcode_atts( array(
             'price'       => $default_price,
-            'address'     => get_option( 'paybutton_paywall_ecash_address', '' ),
+            'address'     => get_option( 'pb_paywall_admin_wallet_address', '' ),
             'unit'        => $default_unit,
             'button_text' => $default_text,
             'hover_text'  => $default_hover,
@@ -201,32 +202,27 @@ class PayButton_Public {
      * @return string
      */
     public function profile_shortcode() {
-        if ( empty( $_SESSION['cashtab_ecash_address'] ) ) {
+        $user_wallet_address = ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : '';
+        if ( empty( $user_wallet_address ) ) {
             return '<p>You must be logged in to view your unlocked content.</p>';
         }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
-        $address    = sanitize_text_field( $_SESSION['cashtab_ecash_address'] );
         $rows       = $wpdb->get_results( $wpdb->prepare(
-            "SELECT DISTINCT post_id FROM $table_name WHERE ecash_address = %s ORDER BY id DESC",
-            $address
+            "SELECT DISTINCT post_id FROM $table_name WHERE pb_paywall_user_wallet_address = %s ORDER BY id DESC",
+            $user_wallet_address
         ) );
         ob_start();
-        $this->load_public_template( 'profile', array( 'address' => $address, 'rows' => $rows ) );
+        $this->load_public_template( 'profile', array(
+            'user_wallet_address' => $user_wallet_address,
+            'rows'                => $rows
+        ) );
         return ob_get_clean();
     }
 
     /**
      * Checks if the given post is unlocked for the current user.
-     *
-     * This function first ensures the session is active, then checks:
-     * 1. If the post ID is stored as "unlocked" in the session (`$_SESSION['paid_articles']`).
-     * 2. If the user is logged in via PayButton (`$_SESSION['cashtab_ecash_address']`), 
-     *    it verifies if the post is unlocked in the database (`is_unlocked_in_db`).
-     * 
-     * Returns `true` if the content is unlocked, otherwise `false`.
-    */
-
+     */
     private function post_is_unlocked( $post_id ) {
         if ( ! session_id() ) {
             session_start();
@@ -234,8 +230,8 @@ class PayButton_Public {
         if ( ! empty( $_SESSION['paid_articles'][ $post_id ] ) && $_SESSION['paid_articles'][ $post_id ] === true ) {
             return true;
         }
-        if ( ! empty( $_SESSION['cashtab_ecash_address'] ) ) {
-            $address = sanitize_text_field( $_SESSION['cashtab_ecash_address'] );
+        if ( ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ) {
+            $address = sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] );
             if ( $this->is_unlocked_in_db( $address, $post_id ) ) {
                 return true;
             }
@@ -245,16 +241,12 @@ class PayButton_Public {
 
     /**
      * Check if a post is unlocked in the database.
-     *
-     * @param string $address
-     * @param int $post_id
-     * @return bool
      */
     private function is_unlocked_in_db( $address, $post_id ) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
         $row = $wpdb->get_var( $wpdb->prepare(
-            "SELECT id FROM $table_name WHERE ecash_address = %s AND post_id = %d LIMIT 1",
+            "SELECT id FROM $table_name WHERE pb_paywall_user_wallet_address = %s AND post_id = %d LIMIT 1",
             $address,
             $post_id
         ) );

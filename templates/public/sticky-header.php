@@ -2,16 +2,16 @@
 <?php
     if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-    // Check if the admin has set an eCash address
-    $admin_ecash_address = get_option('paybutton_paywall_ecash_address', '');
-    if ( empty( $admin_ecash_address ) ) {
+    // Check if the admin has set a wallet address
+    $admin_wallet_address = get_option('pb_paywall_admin_wallet_address', '');
+    if ( empty( $admin_wallet_address ) ) {
         // If no valid address is set, do not display the sticky header.
         return;
     }
 ?>
 
 <div id="cashtab-sticky-header">
-    <?php if ( ! $address ): ?>
+    <?php if ( ! $user_wallet_address ): ?>
         <div id="loginPaybutton"></div>
     <?php else: ?>
         <div class="logged-in-actions">

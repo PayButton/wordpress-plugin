@@ -6,7 +6,7 @@
 <div class="wrap">
     <h1>Content</h1>
     <p><strong>Total Content Unlocks: </strong><?php echo esc_html( intval( $total_unlocks ) ); ?></p>
-    <p><strong>Total Earned (XEC):</strong> <?php echo esc_html( number_format( $grand_total_earned, 2 ) ); ?></p>
+    <p><strong>Total Earned:</strong> <?php echo esc_html( number_format( $grand_total_earned, 2 ) ); ?> XEC</p>
     <?php
     function paybutton_sort_content_table( $col, $label, $orderby, $order, $base_url ) {
         $arrow = '';
