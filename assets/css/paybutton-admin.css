@@ -60,6 +60,118 @@
 }
 
 /* ------------------------------
+   Button Generator Page Styles
+------------------------------ */
+.pb-generator-container {
+    display: flex;
+    gap: 2rem;
+  }
+  
+.pb-generator-form {
+  flex: 1;
+  max-width: 400px;
+}
+
+.pb-generator-form label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.pb-generator-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pb-generator-preview {
+  flex: 1;
+}
+
+#pbGenPreview {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px;
+}
+
+#pbGenShortcode {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Grouped Colors */
+.pb-generator-colors {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.pb-generator-colors .pb-generator-color {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+} 
+
+.pb-generator-widget {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.pb-generator-widget input[type="checkbox"] {
+  margin-left: 0.7rem;
+}
+
+/* Simple custom tooltip styling */
+.pbTooltip {
+  position: absolute;
+  cursor: help;
+  margin-left: 0.3rem;
+}
+
+.pbTooltip::before {
+  padding: 5px 3px;
+}
+
+.pbTooltip::after {
+  content: '';
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+  z-index: 999999;         /* ensure it stays above WP admin menu */
+  max-width: 300px;        
+  background: #0074C2;
+  color: #fff;
+  padding: 5px 2px;
+  border-radius: 3px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: center;
+}
+
+.pbTooltip:hover::after {
+  content: attr(data-tooltip);
+  opacity: 1;
+  padding: 5px 10px;
+}
+
+.shortcode-note {
+  font-size: 0.9em;
+  color: #555;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+/* ------------------------------
    Paywall Settings page styles
 ------------------------------ */
 #adminAddressValidationResult {

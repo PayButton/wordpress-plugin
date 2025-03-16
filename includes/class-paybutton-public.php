@@ -30,6 +30,7 @@ class PayButton_Public {
         add_shortcode( 'paybutton_profile', array( $this, 'profile_shortcode' ) );
         add_filter( 'comments_open', array( $this, 'filter_comments_open' ), 999, 2 );
         add_action( 'pre_get_comments', array( $this, 'filter_comments_query' ), 999 );
+        add_shortcode( 'paybutton', [ $this, 'paybutton_generator_shortcode' ] );
     }
 
     /**
@@ -85,6 +86,15 @@ class PayButton_Public {
             true
         );
 
+        // Load a new JS file to render the [paybutton] shortcodes
+        wp_enqueue_script(
+            'paybutton-generator',
+            PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-generator.js',
+            array('paybutton-core'),
+            '1.0',
+            true
+        );
+
         /**
          * Localizes the 'paybutton-cashtab-login' script with variables needed for AJAX interactions.
          *
@@ -106,6 +116,27 @@ class PayButton_Public {
             'defaultAddress' => get_option( 'pb_paywall_admin_wallet_address', '' ),
             'scrollToUnlocked' => get_option( 'paybutton_scroll_to_unlocked', '1' ),
         ) );
+    }
+
+    /**
+     * Renders the [paybutton][/paybutton] shortcode
+    */
+    public function paybutton_generator_shortcode( $atts, $content = null ) {
+        // Provide a default empty JSON if not supplied
+        $atts = shortcode_atts( [ 'config' => '{}' ], $atts );
+        $decoded = json_decode( $atts['config'], true );
+        if ( ! is_array( $decoded ) ) {
+            $decoded = [];
+        }
+
+        // Safely encode the config for a data attribute
+        $encodedConfig = esc_attr( wp_json_encode( $decoded ) );
+
+        ob_start();
+        ?>
+        <div class="paybutton-shortcode-container" data-config="<?php echo $encodedConfig; ?>"></div>
+        <?php
+        return ob_get_clean();
     }
 
     /**
