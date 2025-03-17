@@ -18,7 +18,7 @@
       <input 
         type="text" 
         id="pbGenTo" 
-        placeholder="Your Wallet Address"
+        placeholder="Your Wallet Address (XEC or BCH)"
         value="<?php echo esc_attr( $admin_address ); ?>"
         class="pb-generator-input"
       >
@@ -38,6 +38,7 @@
       <label for="pbGenCurrency">CURRENCY</label>
       <select id="pbGenCurrency" class="pb-generator-input">
         <option value="XEC" selected>XEC</option>
+        <option value="BCH">BCH</option>
         <option value="USD">USD</option>
         <option value="CAD">CAD</option>
       </select>
@@ -127,8 +128,15 @@
         Enter an address
       </div>
       <h3>SHORTCODE</h3>
-      <p class="shortcode-note">Copy and paste the shortcode generated below wherever you want the PayButton to appear on your site.</p>
-      <textarea id="pbGenShortcode" rows="5" readonly></textarea>
+      <p class="shortcode-note">
+      Click the shortcode below to copy it, then paste it anywhere you'd like the PayButton to appear on your site.
+      </p>
+      <div class="shortcode-container">
+        <textarea id="pbGenShortcode" rows="5" readonly></textarea>
+        <div class="copy-overlay" data-target="#pbGenShortcode">
+          <span class="overlay-text">Click to copy!</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>

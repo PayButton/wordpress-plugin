@@ -749,7 +749,7 @@
 
     var cashaddrExports = requireCashaddr();
 
-    // src/addressValidator.js
+	window.cashaddrExports = cashaddrExports;
 
     document.addEventListener('DOMContentLoaded', () => {
       // Find the wallet address input field by its ID.
@@ -771,8 +771,8 @@
       addressInput.addEventListener('input', () => {
         const address = addressInput.value.trim();
         if (address === "") {
-          resultSpan.textContent = '❌ Invalid address';
-          resultSpan.style.color = 'red';
+          resultSpan.textContent = '';
+          resultSpan.style.color = '';
           if (saveButton) saveButton.disabled = true;
           return;
         }

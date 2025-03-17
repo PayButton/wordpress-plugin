@@ -123,18 +123,27 @@ class PayButton_Admin {
         // Only load the generator JS on the PayButton Generator page
         if ( $hook_suffix === 'paybutton_page_paybutton-generator' ) {
 
+            // Enqueue the bundled address validator script
+            wp_enqueue_script(
+                'address-validator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
+                array(),
+                '2.0.0',
+                true
+            );
+
             wp_enqueue_script(
                 'paybutton-core',
                 PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton.js',
-                array(),
+                array('address-validator'),
                 '1.0',
-                false
+                true
             );
 
             wp_enqueue_script(
                 'paybutton-generator',
                 PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-generator.js',
-                array('jquery'),
+                array('jquery','paybutton-core','address-validator'),
                 '1.0',
                 true
             );
