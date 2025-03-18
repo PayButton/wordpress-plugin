@@ -45,6 +45,9 @@
      BUTTON GENERATOR LOGIC
      ========================================================================== 
   */
+
+  let previousAddress = '';
+  
   if ($('#pbGenTo').length) {
     function updateGenerator() {
       // Define default values for required options
@@ -81,22 +84,33 @@
         $('.shortcode-container .copy-btn').show();
       }
       
-      // Use the validator lib to determine the address type and adjust primary color and currency accordingly.
+      const addressChanged = toVal !== previousAddress;
+      if (addressChanged) {
+        previousAddress = toVal;
+      }
+      
+      // Set primary color based on address type only if the address has changed, to preserve user modifications
       try {
         const decoded = window.cashaddrExports.decodeCashAddress(toVal);
         const $currency = $('#pbGenCurrency');
         const currentCurrency = $currency.val();
         const prefix = decoded.prefix ? decoded.prefix.toLowerCase() : "";
+        if (addressChanged) {
+          if (prefix === 'bitcoincash') {
+            $('#pbGenPrimary').val("#4BC846");
+          } else if (prefix === 'ecash') {
+            $('#pbGenPrimary').val("#0074C2");
+          } else {
+            $('#pbGenPrimary').val(defaults.primary);
+          }
+        }
         if (prefix === 'bitcoincash') {
-          $('#pbGenPrimary').val("#4BC846");
           // Remove XEC option from crypto choices.
           $currency.find('option[value="XEC"]').remove();
           if ($currency.find('option[value="BCH"]').length === 0) {
             $currency.append('<option value="BCH">BCH</option>');
           }
-
         } else if (prefix === 'ecash') {
-          $('#pbGenPrimary').val("#0074C2");
           // Remove BCH option from crypto choices.
           $currency.find('option[value="BCH"]').remove();
           if ($currency.find('option[value="XEC"]').length === 0) {
@@ -106,12 +120,13 @@
             $currency.val("XEC");
           }
         } else {
-          $('#pbGenPrimary').val(defaults.primary);
           $currency.val(defaults.currency);
         }
       } catch (e) {
         // In case decoding fails, revert to default values.
-        $('#pbGenPrimary').val(defaults.primary);
+        if (addressChanged) {
+          $('#pbGenPrimary').val(defaults.primary);
+        }
         $('#pbGenCurrency').val(defaults.currency);
       }
 
@@ -235,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 overlayText.textContent = 'Click to copy!';
               }
               copyOverlay.classList.remove('copied');
-            }, 2000);
+            }, 1000);
           })
           .catch(function(err) {
             console.error('Failed to copy text: ', err);
