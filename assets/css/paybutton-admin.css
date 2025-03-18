@@ -4,6 +4,29 @@
    Dashboard page styles
 ------------------------------ */
 
+/* Adds a blue top-border below the admin-bar*/
+.pb-header {
+  margin-top: 0 !important;
+  box-sizing: border-box;
+}
+
+.pb-header::before {
+  content: "";
+  position: absolute;
+  top: 0 !important;
+  left: -20px !important;
+  right: -0px !important;
+  height: 5px !important;
+  background: #0074C2;
+}
+
+.paybutton-logo {
+  max-width: 250px;
+  height: 40px;
+  margin-top: 0.8rem;
+  padding-bottom: 0px;
+}
+
 /* Container for the dashboard buttons */
 .paybutton-dashboard-buttons {
     display: flex;
@@ -62,6 +85,14 @@
 /* ------------------------------
    Button Generator Page Styles
 ------------------------------ */
+.pb-menu-new{
+  color: #FF21D0;
+  vertical-align: super;
+  font-size: 9px;
+  font-weight: 600;
+  padding-left: 2px;
+}
+
 .pb-generator-container {
     display: flex;
     gap: 2rem;

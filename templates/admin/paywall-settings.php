@@ -4,6 +4,9 @@
 ?>
 
 <div class="wrap">
+    <div class="pb-header">
+        <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+    </div>
     <h1>Paywall Settings</h1>
     <?php if ( $settings_saved ): ?>
         <div class="updated"><p>Settings saved.</p></div>

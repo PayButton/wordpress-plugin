@@ -4,6 +4,9 @@
 ?>
 
 <div class="wrap">
+    <div class="pb-header">
+        <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+    </div>
     <h1>Content</h1>
     <p><strong>Total Content Unlocks: </strong><?php echo esc_html( intval( $total_unlocks ) ); ?></p>
     <p><strong>Total Earned:</strong> <?php echo esc_html( number_format( $grand_total_earned, 2 ) ); ?> XEC</p>
