@@ -36,7 +36,7 @@ class PayButton_Admin {
         add_submenu_page(
             'paybutton',
             'Button Generator',
-            'Button Generator',
+            'Button Generator <span class="pb-menu-new">NEW!</span>',
             'manage_options',
             'paybutton-generator',
             array( $this, 'button_generator_page' )

@@ -4,7 +4,9 @@
 ?>
 
 <div class="wrap">
-    <h1>PayButton</h1>
+    <div class="pb-header">
+        <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+    </div>
     <!-- New heading above the buttons -->
     <h2>Monetize your content with custom no-signup paywalls & donation buttons</h2>
 
@@ -21,10 +23,10 @@
                 Paywall Settings
             </a>
         </div>
-        <!-- Button 3: PayButton Woocomerce (Coming soon) -->
+        <!-- Button 3: PayButton WooComerce (Coming soon) -->
         <div class="paybutton-dashboard-button disabled">
             <p class="paybutton-dashboard-text">
-                PayButton Woocomerce – Coming soon!
+                PayButton WooComerce – Coming soon!
             </p>
         </div>
 
