@@ -60,7 +60,11 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 == Changelog ==
 
 = 3.0.0 (2025/03/18) =
-* 
+* Enhanced admin wallet address configuration flow.
+* Implemented wallet address validation feature using the ecashaddrjs library.
+* Refactored all eCash related identifiers (variables, CSS classes, DB fields) to generic terms.
+* Improved the styling of the Unlocked Content Indicator with added customization support.
+* Added native support for a streamlined PayButton generator that lets WordPress admins easily create and embed custom XEC/BCH donation buttons (e.g., "donate," "buy me a coffee") via shortcode.
 
 = 2.3.0 (2025/03/04) =
 * Created a new paybutton-admin.css file to centralize admin styles.
@@ -91,6 +95,6 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 
 == Upgrade Notice ==
 
-= 2.2.0+ =
-Upgrade to version 2.2.0+ for improved compatibility and reliability.
+= 3.0.0+ =
+Upgrade to version 3.0.0+ for improved compatibility and reliability.
 =======
