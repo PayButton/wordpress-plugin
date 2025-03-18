@@ -35,6 +35,15 @@ class PayButton_Admin {
 
         add_submenu_page(
             'paybutton',
+            'Button Generator',
+            'Button Generator',
+            'manage_options',
+            'paybutton-generator',
+            array( $this, 'button_generator_page' )
+        );
+
+        add_submenu_page(
+            'paybutton',
             'Paywall Settings',
             'Paywall Settings',
             'manage_options',
@@ -110,6 +119,35 @@ class PayButton_Admin {
                 true
             );
         }
+
+        // Only load the generator JS on the PayButton Generator page
+        if ( $hook_suffix === 'paybutton_page_paybutton-generator' ) {
+
+            // Enqueue the bundled address validator script
+            wp_enqueue_script(
+                'address-validator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
+                array(),
+                '2.0.0',
+                true
+            );
+
+            wp_enqueue_script(
+                'paybutton-core',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton.js',
+                array('address-validator'),
+                '1.0',
+                true
+            );
+
+            wp_enqueue_script(
+                'paybutton-generator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-generator.js',
+                array('jquery','paybutton-core','address-validator'),
+                '1.0',
+                true
+            );
+        }
     }
 
     /**
@@ -134,10 +172,17 @@ class PayButton_Admin {
      */
     public function dashboard_page() {
         $args = array(
-            'generate_button_url'  => 'https://paybutton.org/#button-generator',
+            'generate_button_url'  => esc_url( admin_url( 'admin.php?page=paybutton-generator' ) ),
             'paywall_settings_url' => esc_url( admin_url( 'admin.php?page=paybutton-paywall' ) )
         );
         $this->load_admin_template( 'dashboard', $args );
+    }
+
+    public function button_generator_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        $this->load_admin_template( 'paybutton-generator' );
     }
 
     /**
