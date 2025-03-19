@@ -29,12 +29,11 @@
                 PayButton WooComerce – Coming soon!
             </p>
         </div>
-
-        <p class="pb-paragraph-margin-top">
-            Sign up for a <a href="https://paybutton.org/signup" target="_blank">FREE PayButton account</a> to get access to advanced payment tracking &amp; business features.
-        </p>
     </div>
 
+    <p class="pb-paragraph-margin-top">
+            Sign up for a <a href="https://paybutton.org/signup" target="_blank">FREE PayButton account</a> to get access to advanced payment tracking &amp; business features.
+    </p>
     <!-- New icon block below the buttons -->
     <div class="paybutton-dashboard-icons">
         <!-- Home Icon -->
