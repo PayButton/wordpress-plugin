@@ -56,6 +56,7 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 3. Customizable PayButton Paywall Settings
 4. PayButton Paywall Shortcode
 5. Transaction Tracking and Analytics
+6. PayButton Generator
 
 == Changelog ==
 
