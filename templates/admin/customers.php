@@ -5,6 +5,9 @@
 
 <div class="wrap">
     <?php if ( isset( $user_address ) ): ?>
+        <div class="pb-header">
+            <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+        </div>
         <h1>Unlocked Content for: <a href="https://explorer.e.cash/address/<?php echo esc_attr( $user_address ); ?>" target="_blank"><?php echo esc_html( $user_address ); ?></a></h1>
         <?php if ( ! empty( $rows ) ): ?>
             <table class="widefat fixed striped">
@@ -61,6 +64,9 @@
         <?php endif; ?>
         <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=paybutton-paywall-customers' ) ); ?>">← Back to Customers</a></p>
     <?php else: ?>
+        <div class="pb-header">
+            <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+        </div>
         <h1>Customers</h1>
         <p><strong>Total Customers:</strong> <?php echo intval( $total_customers ); ?></p>
         <p><strong>Total Earned:</strong> <?php echo number_format( $grand_total_xec, 2 ); ?> XEC</p>

@@ -7,6 +7,9 @@
 ?>
 
 <div class="wrap">
+  <div class="pb-header">
+    <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+  </div>
   <h1>Button Generator</h1>
   <h2>Build your custom PayButton and begin accepting payments!</h2>
 
