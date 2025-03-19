@@ -65,6 +65,7 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 * Refactored all eCash related identifiers (variables, CSS classes, DB fields) to generic terms.
 * Improved the styling of the Unlocked Content Indicator with added customization support.
 * Added native support for a streamlined PayButton generator that lets WordPress admins easily create and embed custom XEC/BCH donation buttons (e.g., "donate," "buy me a coffee") via shortcode.
+* Improved admin dashboard UI/UX.
 
 = 2.3.0 (2025/03/04) =
 * Created a new paybutton-admin.css file to centralize admin styles.
