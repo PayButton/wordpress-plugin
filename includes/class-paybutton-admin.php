@@ -229,7 +229,7 @@ class PayButton_Admin {
         $address = get_option('pb_paywall_admin_wallet_address', '');
         if (empty($address)) {
             echo '<div class="notice notice-error">';
-            echo '<p><strong>PayButton:</strong> Please set your wallet address in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>. If you don\'t have an address yet, create a wallet using <a href="https://cashtab.com">Cashtab</a>, <a href="https://www.bitcoinabc.org/electrum/">Electrum ABC</a> or <a href="https://electroncash.org/">Electron Cash</a>.</p>';
+            echo '<p><strong>NOTICE:</strong> Please set your wallet address in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>. If you don\'t have an address yet, create a wallet using <a href="https://cashtab.com" target="_blank">Cashtab</a>, <a href="https://www.bitcoinabc.org/electrum/" target="_blank">Electrum ABC</a> or <a href="https://electroncash.org/" target="_blank">Electron Cash</a>.</p>';
             echo '</div>';
         }
     }
