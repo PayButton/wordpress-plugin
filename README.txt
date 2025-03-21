@@ -60,7 +60,7 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 
 == Changelog ==
 
-= 3.0.0 (2025/03/18) =
+= 3.0.0 (2025/03/21) =
 * Enhanced admin wallet address configuration flow.
 * Implemented wallet address validation feature using the ecashaddrjs library.
 * Refactored all eCash related identifiers (variables, CSS classes, DB fields) to generic terms.
