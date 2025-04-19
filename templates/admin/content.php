@@ -23,6 +23,7 @@
             }
         }
         $url = add_query_arg( array( 'orderby' => $col, 'order' => $next_order ), $base_url );
+        $url = wp_nonce_url( $url, 'paybutton_content_sort', 'paybutton_content_nonce' );
         return '<a href="' . esc_url( $url ) . '">' . esc_html( $label . $arrow ) . '</a>';
     }
     ?>

@@ -71,14 +71,18 @@ class PayButton_Admin {
     }
 
     public function handle_save_settings() {
-        if ( isset( $_POST['paybutton_paywall_save_settings'] ) && current_user_can( 'manage_options' ) ) {
+        if (
+            isset( $_POST['paybutton_paywall_save_settings'] ) &&
+            isset( $_POST['paybutton_settings_nonce'] ) &&
+            wp_verify_nonce( $_POST['paybutton_settings_nonce'], 'paybutton_paywall_settings' ) &&
+            current_user_can( 'manage_options' )
+        ) {
             $this->save_settings();
-            // Flush the cache for the wallet address option
-            wp_cache_delete('pb_paywall_admin_wallet_address', 'options');
+            wp_cache_delete( 'pb_paywall_admin_wallet_address', 'options' );
             wp_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
             exit;
         }
-    }    
+    }      
 
     /**
      * This function is hooked into the admin_enqueue_scripts action. It receives a
@@ -294,6 +298,13 @@ class PayButton_Admin {
      * Output the Customers page.
      */
     public function customers_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        if ( isset( $_GET['paybutton_customers_nonce'] ) &&
+             ! wp_verify_nonce( $_GET['paybutton_customers_nonce'], 'paybutton_customers_sort' ) ) {
+            wp_die( 'Security check failed' );
+        }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
@@ -375,6 +386,13 @@ class PayButton_Admin {
      * Output the Content page.
      */
     public function content_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        if ( isset( $_GET['paybutton_content_nonce'] ) &&
+             ! wp_verify_nonce( $_GET['paybutton_content_nonce'], 'paybutton_content_sort' ) ) {
+            wp_die( 'Security check failed' );
+        }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
 

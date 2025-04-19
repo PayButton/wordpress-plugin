@@ -62,7 +62,7 @@
         <?php else: ?>
             <p>No unlocked content found.</p>
         <?php endif; ?>
-        <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=paybutton-paywall-customers' ) ); ?>">← Back to Customers</a></p>
+        <p><a href="<?php echo esc_url(wp_nonce_url( admin_url( 'admin.php?page=paybutton-paywall-customers' ), 'paybutton_customers_sort', 'paybutton_customers_nonce' ) ); ?>">← Back to Customers</a></p>
     <?php else: ?>
         <div class="pb-header">
             <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
@@ -83,6 +83,7 @@
                 }
             }
             $url = add_query_arg( array( 'orderby' => $col, 'order' => $next_order ), $base_url );
+            $url = wp_nonce_url( $url, 'paybutton_customers_sort', 'paybutton_customers_nonce' );
             return '<a href="' . esc_url( $url ) . '">' . esc_html( $label . $arrow ) . '</a>';
         }
         ?>

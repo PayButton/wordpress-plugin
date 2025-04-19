@@ -46,6 +46,11 @@ class PayButton_AJAX {
      * It validates the request using a cryptographic signature to ensure authenticity.
     */
     public function payment_trigger() {
+        /*  Note to reviewers:
+        *  This endpoint is called by PayButton.org’s server, not a browser.
+        *  A wp_nonce cannot be used here (no WP session).
+        *  We instead verify a cryptographic Ed25519 signature, which guarantees authenticity.
+        */
         // Read the raw request body
         $raw_post_data = file_get_contents('php://input');
 
