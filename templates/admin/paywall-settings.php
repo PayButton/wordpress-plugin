@@ -12,6 +12,7 @@
         <div class="updated"><p>Settings saved.</p></div>
     <?php endif; ?>
     <form method="post">
+        <?php wp_nonce_field( 'paybutton_paywall_settings', 'paybutton_settings_nonce' ); ?>
         <table class="form-table">
             <tr>
                 <th scope="row"><label for="pb_paywall_admin_wallet_address">Wallet Address (required)</label></th>
