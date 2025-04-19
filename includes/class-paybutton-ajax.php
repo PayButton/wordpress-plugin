@@ -47,7 +47,7 @@ class PayButton_AJAX {
     */
     public function payment_trigger() {
         /*  Note to reviewers:
-        *  This endpoint is called by PayButton.org’s server, not a browser.
+        *  This endpoint is called by PayButton.org’s server.
         *  A wp_nonce cannot be used here (no WP session).
         *  We instead verify a cryptographic Ed25519 signature, which guarantees authenticity.
         */
