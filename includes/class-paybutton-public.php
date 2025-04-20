@@ -59,7 +59,7 @@ class PayButton_Public {
                 --pb-unlocked-text: {$indicator_text_color};
             }
         ";
-        wp_add_inline_style( 'paybutton-sticky-header', $custom_css );
+        wp_add_inline_style( 'paybutton-sticky-header', esc_attr( $custom_css ) );
 
         // Enqueue the PayButton core script.
         wp_enqueue_script(
@@ -129,12 +129,12 @@ class PayButton_Public {
             $decoded = [];
         }
 
-        // Safely encode the config for a data attribute
-        $encodedConfig = esc_attr( wp_json_encode( $decoded ) );
+        // Encode the config for a data attribute
+        $encodedConfig = wp_json_encode( $decoded );
 
         ob_start();
         ?>
-        <div class="paybutton-shortcode-container" data-config="<?php echo $encodedConfig; ?>"></div>
+        <div class="paybutton-shortcode-container" data-config="<?php echo esc_attr($encodedConfig); ?>"></div>
         <?php
         return ob_get_clean();
     }

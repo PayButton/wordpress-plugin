@@ -13,13 +13,13 @@
     <div class="paybutton-dashboard-buttons">
         <!-- Button 1: Generate Button -->
         <div class="paybutton-dashboard-button">
-            <a href="<?php echo $generate_button_url; ?>" class="button button-primary paybutton-dashboard-link">
+            <a href="<?php echo esc_url( $generate_button_url ); ?>" class="button button-primary paybutton-dashboard-link">
                 PayButton Generator
             </a>
         </div>
         <!-- Button 2: Paywall Settings -->
         <div class="paybutton-dashboard-button">
-            <a href="<?php echo $paywall_settings_url; ?>" class="button button-primary paybutton-dashboard-link">
+        <a href="<?php echo esc_url( $paywall_settings_url ); ?>" class="button button-primary paybutton-dashboard-link">
                 Paywall Settings
             </a>
         </div>
