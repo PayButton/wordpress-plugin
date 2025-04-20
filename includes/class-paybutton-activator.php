@@ -23,13 +23,27 @@ class PayButton_Activator {
     }
 
     private static function migrate_old_option() {
-        $old_value = get_option( 'paybutton_paywall_ecash_address', '' );
-        $new_value = get_option( 'pb_paywall_admin_wallet_address', '' );
-    
-        // If old_value is present and new_value is empty, copy old to new and remove old.
-        if ( ! empty( $old_value ) && empty( $new_value ) ) {
-            update_option( 'pb_paywall_admin_wallet_address', $old_value );
-            delete_option( 'paybutton_paywall_ecash_address' );
+        // --- 1. admin wallet address ---
+        $old_admin_addr = get_option( 'pb_paywall_admin_wallet_address', '' );
+        $new_admin_addr = get_option( 'paybutton_admin_wallet_address', '' );
+        if ( ! empty( $old_admin_addr ) && empty( $new_admin_addr ) ) {
+            update_option( 'paybutton_admin_wallet_address', $old_admin_addr );
+            delete_option( 'pb_paywall_admin_wallet_address' );
+        }
+
+        // --- 2. unlocked‑indicator colours ---
+        $bg_old = get_option( 'unlocked_indicator_bg_color', '' );
+        $bg_new = get_option( 'paybutton_unlocked_indicator_bg_color', '' );
+        if ( ! empty( $bg_old ) && empty( $bg_new ) ) {
+            update_option( 'paybutton_unlocked_indicator_bg_color', $bg_old );
+            delete_option( 'unlocked_indicator_bg_color' );
+        }
+
+        $txt_old = get_option( 'unlocked_indicator_text_color', '' );
+        $txt_new = get_option( 'paybutton_unlocked_indicator_text_color', '' );
+        if ( ! empty( $txt_old ) && empty( $txt_new ) ) {
+            update_option( 'paybutton_unlocked_indicator_text_color', $txt_old );
+            delete_option( 'unlocked_indicator_text_color' );
         }
     }
 

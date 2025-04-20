@@ -78,7 +78,7 @@ class PayButton_Admin {
             current_user_can( 'manage_options' )
         ) {
             $this->save_settings();
-            wp_cache_delete( 'pb_paywall_admin_wallet_address', 'options' );
+            wp_cache_delete( 'paybutton_admin_wallet_address', 'options' );
             wp_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
             exit;
         }
@@ -198,7 +198,7 @@ class PayButton_Admin {
 
         $args = array(
             'settings_saved'          => $settings_saved,
-            'admin_wallet_address'    => get_option( 'pb_paywall_admin_wallet_address', '' ),
+            'admin_wallet_address'    => get_option( 'paybutton_admin_wallet_address', '' ),
             'default_price'           => get_option( 'paybutton_paywall_default_price', 5.5 ),
             'current_unit'            => get_option( 'paybutton_paywall_unit', 'XEC' ),
             'btn_text'                => get_option( 'paybutton_text', 'Pay to Unlock' ),
@@ -230,7 +230,7 @@ class PayButton_Admin {
             return;
         }
 
-        $address = get_option('pb_paywall_admin_wallet_address', '');
+        $address = get_option('paybutton_admin_wallet_address', '');
         if (empty($address)) {
             echo '<div class="notice notice-error">';
             echo '<p><strong>NOTICE:</strong> Please set your wallet address in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>. If you don\'t have an address yet, create a wallet using <a href="https://cashtab.com" target="_blank">Cashtab</a>, <a href="https://www.bitcoinabc.org/electrum/" target="_blank">Electrum ABC</a> or <a href="https://electroncash.org/" target="_blank">Electron Cash</a>.</p>';
@@ -242,7 +242,7 @@ class PayButton_Admin {
      * Save settings submitted via the Paywall Settings page.
      */
     private function save_settings() {
-        $address         = sanitize_text_field( $_POST['pb_paywall_admin_wallet_address'] );
+        $address         = sanitize_text_field( $_POST['paybutton_admin_wallet_address'] );
         $unit            = sanitize_text_field( $_POST['unit'] );
         $raw_price       = floatval( $_POST['default_price'] );
         $button_text     = sanitize_text_field( $_POST['paybutton_text'] );
@@ -251,14 +251,14 @@ class PayButton_Admin {
         $color_secondary = sanitize_hex_color( $_POST['paybutton_color_secondary'] );
         $color_tertiary  = sanitize_hex_color( $_POST['paybutton_color_tertiary'] );
         $hide_comments   = isset( $_POST['paybutton_hide_comments_until_unlocked'] ) ? '1' : '0';
-        $unlocked_indicator_bg_color   = sanitize_hex_color( $_POST['unlocked_indicator_bg_color'] );
-        $unlocked_indicator_text_color = sanitize_hex_color( $_POST['unlocked_indicator_text_color'] );
+        $paybutton_unlocked_indicator_bg_color   = sanitize_hex_color( $_POST['paybutton_unlocked_indicator_bg_color'] );
+        $paybutton_unlocked_indicator_text_color = sanitize_hex_color( $_POST['paybutton_unlocked_indicator_text_color'] );
 
         if ( $unit === 'XEC' && $raw_price < 5.5 ) {
             $raw_price = 5.5;
         }
 
-        update_option( 'pb_paywall_admin_wallet_address', $address );
+        update_option( 'paybutton_admin_wallet_address', $address );
         update_option( 'paybutton_paywall_unit', $unit );
         update_option( 'paybutton_paywall_default_price', $raw_price );
         update_option( 'paybutton_text', $button_text );
@@ -278,8 +278,8 @@ class PayButton_Admin {
         // New unlocked content indicator option:
         update_option( 'paybutton_scroll_to_unlocked', isset( $_POST['paybutton_scroll_to_unlocked'] ) ? '1' : '0' );
         // Default to #007bff for background, #ffffff for text
-        update_option('unlocked_indicator_bg_color', $unlocked_indicator_bg_color ?: '#007bff');
-        update_option('unlocked_indicator_text_color', $unlocked_indicator_text_color ?: '#ffffff');
+        update_option('paybutton_unlocked_indicator_bg_color', $paybutton_unlocked_indicator_bg_color ?: '#007bff');
+        update_option('paybutton_unlocked_indicator_text_color', $paybutton_unlocked_indicator_text_color ?: '#ffffff');
 
         // Save the blacklist
         if ( isset( $_POST['paybutton_blacklist'] ) ) {
