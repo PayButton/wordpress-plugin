@@ -50,26 +50,6 @@ add_action( 'plugins_loaded', function() {
         session_start();
     }
 
-    /**
-     * Migrate any existing session data from the old user-wallet key
-     * ("cashtab_ecash_address") to the new key ("pb_paywall_user_wallet_address").
-     */
-    if ( ! empty( $_SESSION['cashtab_ecash_address'] ) ) {
-        $_SESSION['pb_paywall_user_wallet_address'] = $_SESSION['cashtab_ecash_address'];
-        unset( $_SESSION['cashtab_ecash_address'] );
-    }
-
-    /**
-     * Migrate any existing cookie data from the old cookie
-     * ("cashtab_ecash_address") to the new cookie name
-     * ("pb_paywall_user_wallet_address") for session usage.
-     */
-    if ( ! empty( $_COOKIE['pb_paywall_user_wallet_address'] ) ) {
-        $_SESSION['pb_paywall_user_wallet_address'] = sanitize_text_field( $_COOKIE['pb_paywall_user_wallet_address'] );
-    } elseif ( ! empty( $_COOKIE['cashtab_ecash_address'] ) ) {
-        $_SESSION['pb_paywall_user_wallet_address'] = sanitize_text_field( $_COOKIE['cashtab_ecash_address'] );
-    }
-
     // Initialize admin functionality if in admin area.
     if ( is_admin() ) {
         new PayButton_Admin();
