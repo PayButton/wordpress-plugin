@@ -753,7 +753,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       // Find the wallet address input field by its ID.
-      const addressInput = document.getElementById('pb_paywall_admin_wallet_address');
+      const addressInput = document.getElementById('paybutton_admin_wallet_address');
       if (!addressInput) return;
       
       // Find or create a span for validation feedback.

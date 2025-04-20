@@ -15,10 +15,10 @@
         <?php wp_nonce_field( 'paybutton_paywall_settings', 'paybutton_settings_nonce' ); ?>
         <table class="form-table">
             <tr>
-                <th scope="row"><label for="pb_paywall_admin_wallet_address">Wallet Address (required)</label></th>
+                <th scope="row"><label for="paybutton_admin_wallet_address">Wallet Address (required)</label></th>
                 <td>
                     <!-- Using the new $admin_wallet_address variable -->
-                    <input type="text" name="pb_paywall_admin_wallet_address" id="pb_paywall_admin_wallet_address" class="regular-text" value="<?php echo esc_attr( $admin_wallet_address ); ?>" required>
+                    <input type="text" name="paybutton_admin_wallet_address" id="paybutton_admin_wallet_address" class="regular-text" value="<?php echo esc_attr( $admin_wallet_address ); ?>" required>
                     <!-- This span will be populated by our bundled address validator JS -->
                     <span id="adminAddressValidationResult"></span>
                     <p class="description">Enter your wallet address to receive paywall payments.</p>
@@ -82,13 +82,13 @@
             <tbody id="unlockedIndicatorColors">
                 <tr>
                     <th scope="row">
-                        <label for="unlocked_indicator_bg_color">Background Color</label>
+                        <label for="paybutton_unlocked_indicator_bg_color">Background Color</label>
                     </th>
                     <td>
-                        <input type="color" name="unlocked_indicator_bg_color" id="unlocked_indicator_bg_color"
-                            value="<?php echo esc_attr( get_option('unlocked_indicator_bg_color', '#007bff') ); ?>">
+                        <input type="color" name="paybutton_unlocked_indicator_bg_color" id="paybutton_unlocked_indicator_bg_color"
+                            value="<?php echo esc_attr( get_option('paybutton_unlocked_indicator_bg_color', '#007bff') ); ?>">
                         <button type="button"
-                            onclick="document.getElementById('unlocked_indicator_bg_color').value = '#007bff';">
+                            onclick="document.getElementById('paybutton_unlocked_indicator_bg_color').value = '#007bff';">
                             Reset
                         </button>
                         <p class="description">Controls the background color of the indicator.</p>
@@ -96,13 +96,13 @@
                 </tr>
                 <tr>
                     <th scope="row">
-                        <label for="unlocked_indicator_text_color">Text Color</label>
+                        <label for="paybutton_unlocked_indicator_text_color">Text Color</label>
                     </th>
                     <td>
-                        <input type="color" name="unlocked_indicator_text_color" id="unlocked_indicator_text_color"
-                            value="<?php echo esc_attr( get_option('unlocked_indicator_text_color', '#ffffff') ); ?>">
+                        <input type="color" name="paybutton_unlocked_indicator_text_color" id="paybutton_unlocked_indicator_text_color"
+                            value="<?php echo esc_attr( get_option('paybutton_unlocked_indicator_text_color', '#ffffff') ); ?>">
                         <button type="button"
-                            onclick="document.getElementById('unlocked_indicator_text_color').value = '#ffffff';">
+                            onclick="document.getElementById('paybutton_unlocked_indicator_text_color').value = '#ffffff';">
                             Reset
                         </button>
                         <p class="description">Controls the text color of the indicator.</p>

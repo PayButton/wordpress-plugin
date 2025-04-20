@@ -43,8 +43,8 @@ class PayButton_Public {
         wp_enqueue_style( 'paywall-styles', PAYBUTTON_PLUGIN_URL . 'assets/css/paywall-styles.css', array(), '1.0' );
 
         // Read the admin-chosen colors for the unlocked content indicator from options
-        $indicator_bg_color   = get_option('unlocked_indicator_bg_color', '#007bff');
-        $indicator_text_color = get_option('unlocked_indicator_text_color', '#ffffff');
+        $indicator_bg_color   = get_option('paybutton_unlocked_indicator_bg_color', '#007bff');
+        $indicator_text_color = get_option('paybutton_unlocked_indicator_text_color', '#ffffff');
 
         // Add inline CSS variables.
         $custom_css = "
@@ -113,7 +113,7 @@ class PayButton_Public {
             'nonce'          => wp_create_nonce( 'paybutton_paywall_nonce' ),
             'isUserLoggedIn' => ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? 1 : 0,
             'userAddress'    => ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : '',
-            'defaultAddress' => get_option( 'pb_paywall_admin_wallet_address', '' ),
+            'defaultAddress' => get_option( 'paybutton_admin_wallet_address', '' ),
             'scrollToUnlocked' => get_option( 'paybutton_scroll_to_unlocked', '1' ),
         ) );
     }
@@ -189,7 +189,7 @@ class PayButton_Public {
 
         $atts = shortcode_atts( array(
             'price'       => $default_price,
-            'address'     => get_option( 'pb_paywall_admin_wallet_address', '' ),
+            'address'     => get_option( 'paybutton_admin_wallet_address', '' ),
             'unit'        => $default_unit,
             'button_text' => $default_text,
             'hover_text'  => $default_hover,

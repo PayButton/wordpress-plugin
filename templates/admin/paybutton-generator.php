@@ -3,7 +3,7 @@
     if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
     
     //Get admin's wallet address from paywall settings
-    $admin_address = get_option( 'pb_paywall_admin_wallet_address', '' );
+    $admin_address = get_option( 'paybutton_admin_wallet_address', '' );
 ?>
 
 <div class="wrap">
