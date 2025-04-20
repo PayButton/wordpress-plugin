@@ -46,18 +46,49 @@ class PayButton_AJAX {
      * It validates the request using a cryptographic signature to ensure authenticity.
     */
     public function payment_trigger() {
-        /*  Note to reviewers:
-        *  This endpoint is called by PayButton.org’s server.
-        *  A wp_nonce cannot be used here (no WP session).
-        *  We instead verify a cryptographic Ed25519 signature, which guarantees authenticity.
+        /* Note to reviewers:
+            * A wp_nonce cannot be used here (no WP session).
+            * We instead verify a cryptographic Ed25519 signature, which guarantees authenticity.
+            * The PayButton server POSTS JSON (`Content‑Type: application/json`), so `$_POST`
+            * is empty and we must read php://input and sanitize data.
+            * Reading the raw body – capped at 4 KB (DoS protection) so we never process an
+            * arbitrary‑size payload
         */
-        // Read the raw request body (sanitized later when storing the data)
-        $raw_post_data = file_get_contents('php://input');
+        $max_bytes     = 4096;  // 4 KB is more than enough
+        $raw_post_data = file_get_contents(
+            'php://input',
+            false,
+            null,
+            0,
+            $max_bytes + 1       // read one extra byte → oversize flag
+        );
 
-        // Decode JSON data
-        $json_data = json_decode($raw_post_data, true);
-        if (!$json_data || !isset($json_data['signature']['signature']) || !isset($json_data['signature']['payload'])) {
-            wp_send_json_error(['message' => 'Invalid JSON format or missing signature.']);
+        if ( strlen( $raw_post_data ) > $max_bytes ) {
+            wp_send_json_error( array( 'message' => 'Payload too large.' ), 413 );
+            return;
+        }
+
+        //Decode JSON and copy ONLY the fields we actually use
+        
+        $json = json_decode( $raw_post_data, true );
+
+        if ( ! is_array( $json ) ) {
+            wp_send_json_error( array( 'message' => 'Malformed JSON.' ), 400 );
+            return;
+        }
+
+        $signature      = $json['signature']['signature'] ?? '';
+        $payload        = $json['signature']['payload']   ?? ''; // This is the signed data
+        $post_id_raw    = $json['post_id']['rawMessage']  ?? 0;
+        $tx_hash_raw    = $json['tx_hash']                ?? '';
+        $tx_amount_raw  = $json['tx_amount']              ?? '';
+        $ts_raw         = $json['tx_timestamp']           ?? 0;
+        $user_addr_raw  = $json['user_address'][0]        ?? '';
+
+        unset( $json );   // discard the rest immediately
+
+        if ( empty( $signature ) || empty( $payload ) || empty( $post_id_raw ) || empty( $user_addr_raw ) ) {
+            wp_send_json_error( array( 'message' => 'Required fields missing.' ), 400 );
             return;
         }
 
@@ -68,10 +99,6 @@ class PayButton_AJAX {
             return;
         }
 
-        // Extract signature and payload from nested JSON
-        $signature = $json_data['signature']['signature'];
-        $payload = $json_data['signature']['payload']; // This is the signed data
-
         // Verify the signature
         $verification_result = $this->verify_signature($payload, $signature, $public_key);
         if (!$verification_result) {
@@ -79,15 +106,13 @@ class PayButton_AJAX {
             return;
         }
 
-        // Extract post_id from 'post_id' -> 'rawMessage'
-        $post_id = isset($json_data['post_id']['rawMessage']) ? intval($json_data['post_id']['rawMessage']) : 0;
-
-        // Extract and sanitize transaction details
-        $tx_hash = isset($json_data['tx_hash']) ? sanitize_text_field($json_data['tx_hash']) : '';
-        $tx_amount = isset($json_data['tx_amount']) ? sanitize_text_field($json_data['tx_amount']) : '';
-        $tx_timestamp = isset($json_data['tx_timestamp']) ? intval($json_data['tx_timestamp']) : 0;
-        $user_address = isset($json_data['user_address'][0]) ? sanitize_text_field($json_data['user_address'][0]) : '';
-
+        //Sanitize data
+        $post_id      = intval( $post_id_raw );
+        $tx_hash      = sanitize_text_field( $tx_hash_raw );
+        $tx_amount    = sanitize_text_field( $tx_amount_raw );
+        $tx_timestamp = intval( $ts_raw );
+        $user_address = sanitize_text_field( $user_addr_raw );
+        
         // Convert timestamp to MySQL datetime
         $mysql_timestamp = $tx_timestamp ? gmdate('Y-m-d H:i:s', $tx_timestamp) : '0000-00-00 00:00:00';
 
