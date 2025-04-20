@@ -89,7 +89,7 @@ class PayButton_AJAX {
         $user_address = isset($json_data['user_address'][0]) ? sanitize_text_field($json_data['user_address'][0]) : '';
 
         // Convert timestamp to MySQL datetime
-        $mysql_timestamp = is_numeric($tx_timestamp) ? gmdate('Y-m-d H:i:s', intval($tx_timestamp)) : '0000-00-00 00:00:00';
+        $mysql_timestamp = $tx_timestamp ? gmdate('Y-m-d H:i:s', $tx_timestamp) : '0000-00-00 00:00:00';
 
         if ($post_id > 0 && !empty($user_address)) {
             $is_logged_in = 0;
