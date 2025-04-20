@@ -51,7 +51,7 @@ class PayButton_AJAX {
         *  A wp_nonce cannot be used here (no WP session).
         *  We instead verify a cryptographic Ed25519 signature, which guarantees authenticity.
         */
-        // Read the raw request body
+        // Read the raw request body (sanitized later when storing the data)
         $raw_post_data = file_get_contents('php://input');
 
         // Decode JSON data
@@ -82,11 +82,11 @@ class PayButton_AJAX {
         // Extract post_id from 'post_id' -> 'rawMessage'
         $post_id = isset($json_data['post_id']['rawMessage']) ? intval($json_data['post_id']['rawMessage']) : 0;
 
-        // Extract transaction details
-        $tx_hash = $json_data['tx_hash'] ?? '';
-        $tx_amount = $json_data['tx_amount'] ?? '';
-        $tx_timestamp = $json_data['tx_timestamp'] ?? '';
-        $user_address = $json_data['user_address'][0] ?? '';
+        // Extract and sanitize transaction details
+        $tx_hash = isset($json_data['tx_hash']) ? sanitize_text_field($json_data['tx_hash']) : '';
+        $tx_amount = isset($json_data['tx_amount']) ? sanitize_text_field($json_data['tx_amount']) : '';
+        $tx_timestamp = isset($json_data['tx_timestamp']) ? intval($json_data['tx_timestamp']) : 0;
+        $user_address = isset($json_data['user_address'][0]) ? sanitize_text_field($json_data['user_address'][0]) : '';
 
         // Convert timestamp to MySQL datetime
         $mysql_timestamp = is_numeric($tx_timestamp) ? gmdate('Y-m-d H:i:s', intval($tx_timestamp)) : '0000-00-00 00:00:00';
