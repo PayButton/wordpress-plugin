@@ -30,6 +30,7 @@ require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-deactivator.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-admin.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-public.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-ajax.php';
+require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-state.php';
 
 /**
  * Registers the plugin's activation and deactivation hooks.
@@ -45,11 +46,6 @@ register_deactivation_hook( __FILE__, array( 'PayButton_Deactivator', 'deactivat
 
 // Initialize plugin functionality.
 add_action( 'plugins_loaded', function() {
-    // Start a PHP session if none exists.
-    if ( ! session_id() ) {
-        session_start();
-    }
-
     // Initialize admin functionality if in admin area.
     if ( is_admin() ) {
         new PayButton_Admin();

@@ -19,7 +19,7 @@ class PayButton_AJAX {
      *      - Fires if the visitor is not recognized as logged in by WordPress.
      *
      * Since our plugin implements a separate "pay-to-login" process (storing user wallet 
-     * addresses in sessions), from WP’s point of view, most of our pay-to-login users 
+     * addresses in cookies), from WP’s point of view, most of our pay-to-login users 
      * are still not "logged in" in the standard WordPress sense.
      *
      * If we want both WP-logged-in and non-WP-logged-in visitors to access the same 
@@ -172,15 +172,12 @@ class PayButton_AJAX {
      * in a variable called pb_paywall_user_wallet_address from the handleLogin() method
      * of the "paybutton-paywall-cashtab-login.js" file via AJAX.
      *
-     * This function verifies the AJAX nonce for security, ensures a PHP session is active,
-     * sanitizes the 'address' field from the POST data, and then stores it in both the session
-     * (under 'pb_paywall_user_wallet_address') and as a cookie (lasting 30 days).
+     * This function verifies the AJAX nonce for security,
+     * sanitizes the 'address' field from the POST data, and then stores it in
+     * a cookie (lasting a week).
     */
     public function save_address() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
-        if ( ! session_id() ) {
-            session_start();
-        }
         $address = sanitize_text_field( $_POST['address'] );
 
         // Retrieve the blacklist and check the address
@@ -191,45 +188,20 @@ class PayButton_AJAX {
         }
         // blacklist End
 
-        $_SESSION['pb_paywall_user_wallet_address'] = $address;
-
-        // Write the new cookie
-        setcookie(
-            'pb_paywall_user_wallet_address',
-            $address,
-            time() + 2592000,
-            COOKIEPATH ?: '/',
-            COOKIE_DOMAIN ?: '',
-            is_ssl(),
-            true
-        );
-
-        wp_send_json_success( array( 'message' => 'Address stored in session & cookie' ) );
+        PayButton_State::set_address( $address ); wp_send_json_success();
     }
 
     /**
      * Logs the user out via AJAX.
      *
-     * This function verifies the AJAX nonce for security and ensures a PHP session is active.
-     * It then removes the stored 'pb_paywall_user_wallet_address' from the session and clears
-     * the corresponding cookie. Additionally, it unsets any session data tracking paid articles.
+     * This function verifies the AJAX nonce for security.
+     * It then removes the stored 'pb_paywall_user_wallet_address' from the cookie and clears
+     * the corresponding cookie. Additionally, it unsets any cookie data tracking paid articles.
     */
     public function logout() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
-        if ( ! session_id() ) {
-            session_start();
-        }
-        unset( $_SESSION['pb_paywall_user_wallet_address'] );
-        setcookie(
-            'pb_paywall_user_wallet_address',
-            '',
-            time() - 3600,
-            COOKIEPATH ?: '/',
-            COOKIE_DOMAIN ?: '',
-            is_ssl(),
-            true
-        );
-        unset( $_SESSION['paid_articles'] );
+        PayButton_State::clear_address(); 
+        PayButton_State::clear_articles();
         wp_send_json_success( array( 'message' => 'Logged out' ) );
     }
 
@@ -238,9 +210,6 @@ class PayButton_AJAX {
      */
     public function mark_payment_successful() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
-        if ( ! session_id() ) {
-            session_start();
-        }
 
         $post_id      = isset( $_POST['post_id'] ) ? intval( $_POST['post_id'] ) : 0;
         $tx_hash      = isset( $_POST['tx_hash'] ) ? sanitize_text_field( $_POST['tx_hash'] ) : '';
@@ -255,14 +224,14 @@ class PayButton_AJAX {
         }
 
         if ( $post_id > 0 ) {
-            // Mark this post as "unlocked" in the session
-            $_SESSION['paid_articles'][ $post_id ] = true;
+            // Mark this post as "unlocked" in the cookie
+            PayButton_State::add_article( $post_id );
 
-            // Determine if user was "logged in" (i.e., session has a stored user wallet address)
-            $is_logged_in = ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? 1 : 0;
+            // Determine if user was "logged in" (i.e., cookie has a stored user wallet address)
+            $is_logged_in = PayButton_State::get_address() ? 1 : 0;
 
             // Decide which address to store:
-            $address_to_store = $is_logged_in ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : $user_address;
+            $address_to_store = $is_logged_in ? sanitize_text_field( PayButton_State::get_address() ) : $user_address;
 
             // If we have any address to store, insert a record
             if ( ! empty( $address_to_store ) ) {

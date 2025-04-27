@@ -3,7 +3,7 @@ Contributors: xecdev, klakurka
 Donate link: https://donate.paybutton.org/
 Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.0
 Stable tag: 3.0.0
 PayButton Client: 4.1.0
