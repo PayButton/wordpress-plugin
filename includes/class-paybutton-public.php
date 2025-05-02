@@ -111,8 +111,8 @@ class PayButton_Public {
         wp_localize_script( 'paybutton-cashtab-login', 'PaywallAjax', array(
             'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
             'nonce'          => wp_create_nonce( 'paybutton_paywall_nonce' ),
-            'isUserLoggedIn' => ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? 1 : 0,
-            'userAddress'    => ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : '',
+            'isUserLoggedIn' => PayButton_State::get_address() ? 1 : 0,
+            'userAddress' => sanitize_text_field( PayButton_State::get_address() ),
             'defaultAddress' => get_option( 'paybutton_admin_wallet_address', '' ),
             'scrollToUnlocked' => get_option( 'paybutton_scroll_to_unlocked', '1' ),
         ) );
@@ -154,7 +154,7 @@ class PayButton_Public {
      * Output the sticky header HTML.
      */
     public function output_sticky_header() {
-        $user_wallet_address = ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : '';
+        $user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
         $this->load_public_template( 'sticky-header', array(
             'user_wallet_address' => $user_wallet_address
         ) );
@@ -237,7 +237,7 @@ class PayButton_Public {
      * @return string
      */
     public function profile_shortcode() {
-        $user_wallet_address = ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ? sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] ) : '';
+        $user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
         if ( empty( $user_wallet_address ) ) {
             return '<p>You must be logged in to view your unlocked content.</p>';
         }
@@ -259,14 +259,11 @@ class PayButton_Public {
      * Checks if the given post is unlocked for the current user.
      */
     private function post_is_unlocked( $post_id ) {
-        if ( ! session_id() ) {
-            session_start();
-        }
-        if ( ! empty( $_SESSION['paid_articles'][ $post_id ] ) && $_SESSION['paid_articles'][ $post_id ] === true ) {
+        if ( isset( PayButton_State::get_articles()[ $post_id ] ) ) {
             return true;
         }
-        if ( ! empty( $_SESSION['pb_paywall_user_wallet_address'] ) ) {
-            $address = sanitize_text_field( $_SESSION['pb_paywall_user_wallet_address'] );
+        $addr = PayButton_State::get_address(); if ( $addr ) { 
+            $address = sanitize_text_field( $addr );
             if ( $this->is_unlocked_in_db( $address, $post_id ) ) {
                 return true;
             }
