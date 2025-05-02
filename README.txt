@@ -58,6 +58,23 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 5. Transaction Tracking and Analytics
 6. PayButton Generator
 
+== External services ==
+
+- Paybutton websocket
+This plugin connects to the Paybutton WebSocket, a service that monitors blockchain transactions. 
+It is used to detect payments made to the Paybutton/Widget address in real time.
+The plugin uses the provided address to establish a connection and begins listening for events emitted when new transactions are detected.
+This service is provided by Paybutton.
+
+- Paybutton API 
+This plugin communicates with the Paybutton API to fetch information about the address and its transactions.
+It provides data such as the transaction price and the address balance, which are used by the widget and the button. 
+This service is also provided by Paybutton.
+
+- Sideshift.AI API
+The integration uses the Sideshift API to enable the button or widget to accept payments in a different currency than the one being received.
+This service is provided by Sideshift.AI.[https://sideshift.ai/legal]
+
 == Changelog ==
 
 = 3.0.0 (2025/03/21) =
