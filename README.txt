@@ -64,12 +64,12 @@ Absolutely, the admin dashboard allows you to modify button texts, pricing, colo
 This plugin connects to the PayButton WebSocket, a service that monitors blockchain transactions. 
 It is used to detect payments made to the PayButton/Widget address in real time.
 The plugin uses the provided address to establish a connection and begins listening for events emitted when new transactions are detected.
-This service is provided by PayButton.
+This service is provided by PayButton: terms of use[https://github.com/PayButton/paybutton-server/blob/master/TERMS.md], privacy policy[https://github.com/PayButton/paybutton-server/blob/master/PRIVACY.md].
 
 - PayButton API 
 This plugin communicates with the PayButton API to fetch information about the address and its transactions.
 It provides data such as the transaction price and the address balance, which are used by the widget and the button. 
-This service is also provided by PayButton.
+This service is also provided by PayButton:  terms of use[https://github.com/PayButton/paybutton-server/blob/master/TERMS.md], privacy policy[https://github.com/PayButton/paybutton-server/blob/master/PRIVACY.md].
 
 - SideShift.AI API
 The integration uses the SideShift API to enable the button or widget to accept payments in a different currency than the one being received.
