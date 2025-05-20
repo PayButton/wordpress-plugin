@@ -304,7 +304,7 @@ class PayButton_Admin {
         // Only require nonce when sorting is requested
         if ( isset( $_GET['orderby'] ) ) {
             if ( ! isset( $_GET['paybutton_customers_nonce'] )
-            || ! wp_verify_nonce( wp_unslash( $_GET['paybutton_customers_nonce'] ), 'paybutton_customers_sort' )
+            || ! wp_verify_nonce( sanitize_text_field(wp_unslash( $_GET['paybutton_customers_nonce'] )), 'paybutton_customers_sort' )
             ) {
                 wp_die( 'Security check failed' );
             }
@@ -396,7 +396,7 @@ class PayButton_Admin {
         // Only require nonce when sorting is requested
         if ( isset( $_GET['orderby'] ) ) {
             if ( ! isset( $_GET['paybutton_content_nonce'] )
-            || ! wp_verify_nonce( wp_unslash( $_GET['paybutton_content_nonce'] ), 'paybutton_content_sort' )
+            || ! wp_verify_nonce( sanitize_text_field(wp_unslash( $_GET['paybutton_content_nonce'] )), 'paybutton_content_sort' )
             ) {
                 wp_die( 'Security check failed' );
             }
