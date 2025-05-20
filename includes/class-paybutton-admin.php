@@ -301,9 +301,13 @@ class PayButton_Admin {
         if ( ! current_user_can( 'manage_options' ) ) {
             return;
         }
-        if ( isset( $_GET['paybutton_customers_nonce'] ) &&
-             ! wp_verify_nonce( $_GET['paybutton_customers_nonce'], 'paybutton_customers_sort' ) ) {
-            wp_die( 'Security check failed' );
+        // Only require nonce when sorting is requested
+        if ( isset( $_GET['orderby'] ) ) {
+            if ( ! isset( $_GET['paybutton_customers_nonce'] )
+            || ! wp_verify_nonce( wp_unslash( $_GET['paybutton_customers_nonce'] ), 'paybutton_customers_sort' )
+            ) {
+                wp_die( 'Security check failed' );
+            }
         }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
@@ -389,9 +393,13 @@ class PayButton_Admin {
         if ( ! current_user_can( 'manage_options' ) ) {
             return;
         }
-        if ( isset( $_GET['paybutton_content_nonce'] ) &&
-             ! wp_verify_nonce( $_GET['paybutton_content_nonce'], 'paybutton_content_sort' ) ) {
-            wp_die( 'Security check failed' );
+        // Only require nonce when sorting is requested
+        if ( isset( $_GET['orderby'] ) ) {
+            if ( ! isset( $_GET['paybutton_content_nonce'] )
+            || ! wp_verify_nonce( wp_unslash( $_GET['paybutton_content_nonce'] ), 'paybutton_content_sort' )
+            ) {
+                wp_die( 'Security check failed' );
+            }
         }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
