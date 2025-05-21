@@ -74,7 +74,7 @@ class PayButton_Admin {
         if (
             isset( $_POST['paybutton_paywall_save_settings'] ) &&
             isset( $_POST['paybutton_settings_nonce'] ) &&
-            wp_verify_nonce( $_POST['paybutton_settings_nonce'], 'paybutton_paywall_settings' ) &&
+            wp_verify_nonce( sanitize_text_field( wp_unslash($_POST['paybutton_settings_nonce'])), 'paybutton_paywall_settings' ) &&
             current_user_can( 'manage_options' )
         ) {
             $this->save_settings();

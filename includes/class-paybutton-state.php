@@ -23,9 +23,21 @@ final class PayButton_State {
      * Build a fingerprint string from client headers
     */
     private static function fingerprint() {
-        $ua   = $_SERVER['HTTP_USER_AGENT']      ?? '';
-        $ip   = $_SERVER['REMOTE_ADDR']          ?? '';
-        $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+        // Get and sanitize User-Agent
+        $ua_raw   = $_SERVER['HTTP_USER_AGENT']      ?? '';
+        $ua       = sanitize_text_field( wp_unslash( $ua_raw ) );
+
+        // Get and validate IP address (support IPv4 and IPv6)
+        $ip_raw = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+        // Handle multiple IPs in X-Forwarded-For
+        $ip_raw = trim(explode(',', $ip_raw)[0]); // Trim after selecting first IP
+        $ip = filter_var($ip_raw, FILTER_VALIDATE_IP) ? $ip_raw : '';
+        
+        // Get and sanitize Accept-Language
+        $lang_raw = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+        $lang_clean = sanitize_text_field(wp_unslash($lang_raw));
+        $lang = preg_match('/^[a-zA-Z]{1,3}(?:-[a-zA-Z]{1,3})?(?:,[a-zA-Z]{1,3}(?:-[a-zA-Z]{1,3})?)*$/i', $lang_clean) ? $lang_clean : '';
+        
         return "{$ua}|{$ip}|{$lang}";
     }
 
@@ -42,6 +54,8 @@ final class PayButton_State {
      * Verify the cookie structure, HMAC, and fingerprint
     */
     private static function verify_and_extract( $cookie, &$out_payload ) {
+        //Sanitaize the cookie value
+        $cookie = sanitize_text_field( wp_unslash( $cookie ) );
         //Split the stored cookie into three parts
         list( $payload, $fpHash, $mac ) = explode( '|', $cookie, 3 ) + [ '', '', '' ];
         // 1) verify HMAC
@@ -105,7 +119,10 @@ final class PayButton_State {
         if ( empty( $_COOKIE[ self::COOKIE_USER_ADDR ] ) ) {
             return '';
         }
-        if ( ! self::verify_and_extract( $_COOKIE[ self::COOKIE_USER_ADDR ], $addr ) ) {
+        // Sanitize the cookie value before verify_and_extract
+        $cookie = sanitize_text_field( wp_unslash( $_COOKIE[ self::COOKIE_USER_ADDR ] ) );
+
+        if ( ! self::verify_and_extract( $cookie, $addr ) ) {
             return '';
         }
         return $addr;
@@ -195,7 +212,11 @@ final class PayButton_State {
         if ( empty( $_COOKIE[ self::COOKIE_CONTENT ] ) ) {
             return [];
         }
-        if ( ! self::verify_and_extract( $_COOKIE[ self::COOKIE_CONTENT ], $payload ) ) {
+
+        // Sanitize the cookie value before verify_and_extract
+        $cookie = sanitize_text_field( wp_unslash( $_COOKIE[ self::COOKIE_CONTENT ] ) );
+
+        if ( ! self::verify_and_extract( $cookie, $payload ) ) {
             return [];
         }
         $json = base64_decode( $payload );
