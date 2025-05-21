@@ -75,8 +75,8 @@ The integration uses the SideShift API to enable the button or widget to accept 
 == Changelog ==
 
 = 3.2.0 (2025/05/21) =
-* Sanitized and validated cookies and data
-* Fixed nonce logic in Content & Customers page
+* Sanitized and validated cookies and data.
+* Fixed nonce logic in Content & Customers page.
 
 = 3.1.0 (2025/05/10) =
 * Added nonce verification and user capability checks for enhanced security.
