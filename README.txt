@@ -122,6 +122,6 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Upgrade Notice ==
 
-= 3.1.0 =
-Upgrade to version 3.1.0 for improved compatibility and reliability.
+= 3.2.0 =
+Upgrade to version 3.2.0 for improved compatibility and reliability.
 =======
