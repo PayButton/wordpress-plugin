@@ -5,7 +5,7 @@ Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.0
-Stable tag: 3.1.0
+Stable tag: 3.2.0
 PayButton Client: 4.1.0
 PayButton Client URI: https://github.com/PayButton/paybutton
 License: MIT
@@ -74,6 +74,10 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Changelog ==
 
+= 3.2.0 (2025/05/21) =
+* Sanitized and validated cookies and data
+* Fixed nonce logic in Content & Customers page
+
 = 3.1.0 (2025/05/10) =
 * Added nonce verification and user capability checks for enhanced security.
 * Added paybutton_ prefix to all generic option names to avoid naming conflicts.
@@ -118,6 +122,6 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Upgrade Notice ==
 
-= 3.1.0 =
-Upgrade to version 3.1.0 for improved compatibility and reliability.
+= 3.2.0 =
+Upgrade to version 3.2.0 for improved compatibility and reliability.
 =======
