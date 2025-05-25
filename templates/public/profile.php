@@ -5,9 +5,9 @@
 
 <div class="paybutton-profile">
     <p>
-        <strong>eCash Address:</strong>
-        <a href="https://explorer.e.cash/address/<?php echo esc_attr( $address ); ?>" target="_blank">
-            <?php echo esc_html( $address ); ?>
+        <strong>Wallet Address:</strong>
+        <a href="https://explorer.e.cash/address/<?php echo esc_attr( $user_wallet_address ); ?>" target="_blank">
+            <?php echo esc_html( $user_wallet_address ); ?>
         </a>
     </p>
     <h3>Unlocked Content:</h3>

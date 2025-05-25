@@ -4,19 +4,29 @@
 ?>
 
 <div class="wrap">
+    <div class="pb-header">
+        <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+    </div>
     <h1>Paywall Settings</h1>
     <?php if ( $settings_saved ): ?>
         <div class="updated"><p>Settings saved.</p></div>
     <?php endif; ?>
     <form method="post">
+        <?php wp_nonce_field( 'paybutton_paywall_settings', 'paybutton_settings_nonce' ); ?>
         <table class="form-table">
             <tr>
-                <th scope="row"><label for="ecash_address">eCash Address</label></th>
-                <td><input type="text" name="ecash_address" id="ecash_address" class="regular-text" value="<?php echo esc_attr( $ecash_address ); ?>"></td>
+                <th scope="row"><label for="paybutton_admin_wallet_address">Wallet Address (required)</label></th>
+                <td>
+                    <!-- Using the new $admin_wallet_address variable -->
+                    <input type="text" name="paybutton_admin_wallet_address" id="paybutton_admin_wallet_address" class="regular-text" value="<?php echo esc_attr( $admin_wallet_address ); ?>" required>
+                    <!-- This span will be populated by our bundled address validator JS -->
+                    <span id="adminAddressValidationResult"></span>
+                    <p class="description">Enter your wallet address to receive paywall payments.</p>
+                </td>
             </tr>
             <tr>
                 <th scope="row"><label for="default_price">Default Price</label></th>
-                <td><input type="number" step="1" name="default_price" id="default_price" class="regular-text" value="<?php echo esc_attr( $default_price ); ?>">
+                <td><input type="number" step="any" name="default_price" id="default_price" class="regular-text" value="<?php echo esc_attr( $default_price ); ?>">
                 <p class="description">Minimum 5.5 if using XEC.</p>
                 </td>
             </tr>
@@ -69,6 +79,36 @@
                     </label>
                 </td>
             </tr>
+            <tbody id="unlockedIndicatorColors">
+                <tr>
+                    <th scope="row">
+                        <label for="paybutton_unlocked_indicator_bg_color">Background Color</label>
+                    </th>
+                    <td>
+                        <input type="color" name="paybutton_unlocked_indicator_bg_color" id="paybutton_unlocked_indicator_bg_color"
+                            value="<?php echo esc_attr( get_option('paybutton_unlocked_indicator_bg_color', '#007bff') ); ?>">
+                        <button type="button"
+                            onclick="document.getElementById('paybutton_unlocked_indicator_bg_color').value = '#007bff';">
+                            Reset
+                        </button>
+                        <p class="description">Controls the background color of the indicator.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="paybutton_unlocked_indicator_text_color">Text Color</label>
+                    </th>
+                    <td>
+                        <input type="color" name="paybutton_unlocked_indicator_text_color" id="paybutton_unlocked_indicator_text_color"
+                            value="<?php echo esc_attr( get_option('paybutton_unlocked_indicator_text_color', '#ffffff') ); ?>">
+                        <button type="button"
+                            onclick="document.getElementById('paybutton_unlocked_indicator_text_color').value = '#ffffff';">
+                            Reset
+                        </button>
+                        <p class="description">Controls the text color of the indicator.</p>
+                    </td>
+                </tr>
+            </tbody>
             <!-- Sticky Header Settings -->
             <tr>
                 <th colspan="2"><h2>Sticky Header Settings</h2></th>
@@ -121,13 +161,13 @@
             </tr>
             <!--blacklist Field -->
             <tr>
-                <th scope="row"><label for="paybutton_blacklist">Blacklisted eCash Addresses (optional)</label></th>
+                <th scope="row"><label for="paybutton_blacklist">Blacklisted Addresses (optional)</label></th>
                 <td>
                     <textarea name="paybutton_blacklist" id="paybutton_blacklist" rows="4" cols="50"><?php
                         // Convert the blacklist array into a comma-separated string for display
                         echo esc_textarea( isset($blacklist) ? implode(', ', (array) $blacklist ) : '' );
                     ?></textarea>
-                    <p class="description">Enter comma-separated eCash addresses to block from logging in via Cashtab.</p>
+                    <p class="description">Enter comma-separated wallet addresses to block from logging in via Cashtab.</p>
                 </td>
             </tr>
             <!--NEW Public Key input field-->
@@ -136,7 +176,7 @@
                     <label for="paybutton_public_key">PayButton Public Key (optional)</label>
                 </th>
                 <td>
-                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" value="<?php echo esc_attr( get_option('paybutton_public_key', '') ); ?>">
+                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" value="<?php echo esc_attr( $paybutton_public_key ); ?>">
                     <p class="description">
                         Enter your PayButton public key to verify Payment Trigger requests.
                     </p>
@@ -150,7 +190,7 @@
                         </p>
                         <p>
                             2. <a href="https://paybutton.org/buttons" target="_blank" rel="noopener noreferrer">Create a button</a> 
-                            for your paywall receiving eCash address.
+                            for your paywall receiving wallet address.
                         </p>
                         <p>
                             3. Scroll down on the buttons page to the section <em>"When a Payment is Received..."</em>.

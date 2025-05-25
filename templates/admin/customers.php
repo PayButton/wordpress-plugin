@@ -5,6 +5,9 @@
 
 <div class="wrap">
     <?php if ( isset( $user_address ) ): ?>
+        <div class="pb-header">
+            <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+        </div>
         <h1>Unlocked Content for: <a href="https://explorer.e.cash/address/<?php echo esc_attr( $user_address ); ?>" target="_blank"><?php echo esc_html( $user_address ); ?></a></h1>
         <?php if ( ! empty( $rows ) ): ?>
             <table class="widefat fixed striped">
@@ -59,11 +62,14 @@
         <?php else: ?>
             <p>No unlocked content found.</p>
         <?php endif; ?>
-        <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=paybutton-paywall-customers' ) ); ?>">← Back to Customers</a></p>
+        <p><a href="<?php echo esc_url(wp_nonce_url( admin_url( 'admin.php?page=paybutton-paywall-customers' ), 'paybutton_customers_sort', 'paybutton_customers_nonce' ) ); ?>">← Back to Customers</a></p>
     <?php else: ?>
+        <div class="pb-header">
+            <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+        </div>
         <h1>Customers</h1>
         <p><strong>Total Customers:</strong> <?php echo intval( $total_customers ); ?></p>
-        <p><strong>Total Earned (XEC):</strong> <?php echo number_format( $grand_total_xec, 2 ); ?> XEC</p>
+        <p><strong>Total Earned:</strong> <?php echo number_format( $grand_total_xec, 2 ); ?> XEC</p>
         <?php
         function paybutton_sort_customers_table( $col, $label, $orderby, $order, $base_url ) {
             $next_order = 'ASC';
@@ -77,13 +83,14 @@
                 }
             }
             $url = add_query_arg( array( 'orderby' => $col, 'order' => $next_order ), $base_url );
+            $url = wp_nonce_url( $url, 'paybutton_customers_sort', 'paybutton_customers_nonce' );
             return '<a href="' . esc_url( $url ) . '">' . esc_html( $label . $arrow ) . '</a>';
         }
         ?>
         <table class="widefat fixed striped">
             <thead>
                 <tr>
-                <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'ecash_address', 'Customer', $orderby, $order, $base_url ) ); ?></th>
+                <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'pb_paywall_user_wallet_address', 'Customer', $orderby, $order, $base_url ) ); ?></th>
                 <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'unlocked_count', 'Unlocked Content', $orderby, $order, $base_url ) ); ?></th>
                 <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'total_paid', 'Total Paid (XEC)', $orderby, $order, $base_url ) ); ?></th>
                 <th><?php echo wp_kses_post( paybutton_sort_customers_table( 'last_unlock_ts', 'Last Unlock', $orderby, $order, $base_url ) ); ?></th>
@@ -94,13 +101,13 @@
                     <?php foreach ( $customers as $row ): 
                         $detail_link = add_query_arg( array(
                             'page'    => 'paybutton-paywall-customers',
-                            'address' => $row['ecash_address']
+                            'address' => $row['pb_paywall_user_wallet_address']
                         ), admin_url( 'admin.php' ) );
                         ?>
                         <tr>
                             <td>
                                 <a href="<?php echo esc_url( $detail_link ); ?>">
-                                    <?php echo esc_html( $row['ecash_address'] ); ?>
+                                    <?php echo esc_html( $row['pb_paywall_user_wallet_address'] ); ?>
                                 </a>
                             </td>
                             <td>
@@ -133,7 +140,7 @@
                 <?php endif; ?>
             </tbody>
         </table>
-        <p style="margin-top: 1rem;">
+        <p class="pb-paragraph-margin-top">
             Sign up for a <a href="https://paybutton.org/signup" target="_blank">FREE PayButton account</a> to get access to advanced payment tracking & business features.
         </p>
     <?php endif; ?>

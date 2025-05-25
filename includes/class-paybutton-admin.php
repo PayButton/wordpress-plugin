@@ -14,6 +14,9 @@ class PayButton_Admin {
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'add_admin_menus' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+        add_action( 'admin_notices', array( $this, 'admin_notice_missing_wallet_address' ) );
+        // Process form submissions early
+        add_action( 'admin_init', array( $this, 'handle_save_settings' ) );
     }
 
     /**
@@ -28,6 +31,15 @@ class PayButton_Admin {
             array( $this, 'dashboard_page' ),
             'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MC42NSA0OS4wOCI+PGcgZGF0YS1uYW1lPSJMYXllcl8yIj48cmVjdCB3aWR0aD0iOTAuNjUiIGhlaWdodD0iNDkuMDgiIHJ4PSI5Ljk5IiByeT0iOS45OSIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0zMi45NiAyMS42MmMtLjYxIDEuMS0xLjU1IDEuOTktMi44MSAyLjY2LTEuMjYuNjgtMi44MyAxLjAxLTQuNyAxLjAxaC0zLjQ2djguMjNoLTUuNThWMTAuNmg5LjA1YzEuODMgMCAzLjM4LjMyIDQuNjQuOTVzMi4yMSAxLjUgMi44NCAyLjYxLjk1IDIuMzguOTUgMy44MmMwIDEuMzMtLjMxIDIuNTQtLjkyIDMuNjR6bS01LjU1LTEuNTJjLjUyLS41Ljc4LTEuMjEuNzgtMi4xMnMtLjI2LTEuNjItLjc4LTIuMTItMS4zMi0uNzUtMi4zOC0uNzVoLTMuMDR2NS43NWgzLjA0YzEuMDcgMCAxLjg2LS4yNSAyLjM4LS43NVptOS4zMi0uNjVjLjcxLTEuNDIgMS42Ny0yLjUgMi44OS0zLjI3cTEuODMtMS4xNCA0LjA4LTEuMTRjMS4yOCAwIDIuNDEuMjYgMy4zOC43OHMxLjcxIDEuMjEgMi4yNCAyLjA2VjE1LjNoNS41OHYxOC4yMmgtNS41OHYtMi41OGMtLjU0Ljg1LTEuMyAxLjU0LTIuMjcgMi4wNnMtMi4xLjc4LTMuMzguNzhjLTEuNDMuMDEtMi44NC0uMzktNC4wNS0xLjE2LTEuMjItLjc3LTIuMTgtMS44Ny0yLjg5LTMuM3MtMS4wNi0zLjA4LTEuMDYtNC45NS4zNS0zLjUyIDEuMDYtNC45M1ptMTEuNDMgMS42N2MtLjc3LS44LTEuNzEtMS4yMS0yLjgzLTEuMjFzLTIuMDUuNC0yLjgzIDEuMTljLS43Ny43OS0xLjE2IDEuODktMS4xNiAzLjI4cy4zOSAyLjUgMS4xNiAzLjMxYy43Ny44MiAxLjcxIDEuMjIgMi44MyAxLjIyczIuMDUtLjQgMi44My0xLjIxYy43Ny0uODEgMS4xNi0xLjkxIDEuMTYtMy4zcy0uMzktMi40OS0xLjE2LTMuM3ptMjkuNDEtNS44Mkw2Ni4xNCA0Mi4xOGgtNi4wMWw0LjE4LTkuMjgtNy40MS0xNy42aDYuMjRsNC4yMSAxMS40IDQuMTgtMTEuNHoiLz48L2c+PC9zdmc+', //Sets the PayButton SVG (base64 encoded) logo as the icon of the main menu
             100
+        );
+
+        add_submenu_page(
+            'paybutton',
+            'Button Generator',
+            'Button Generator <span class="pb-menu-new">NEW!</span>',
+            'manage_options',
+            'paybutton-generator',
+            array( $this, 'button_generator_page' )
         );
 
         add_submenu_page(
@@ -58,6 +70,20 @@ class PayButton_Admin {
         );
     }
 
+    public function handle_save_settings() {
+        if (
+            isset( $_POST['paybutton_paywall_save_settings'] ) &&
+            isset( $_POST['paybutton_settings_nonce'] ) &&
+            wp_verify_nonce( sanitize_text_field( wp_unslash($_POST['paybutton_settings_nonce'])), 'paybutton_paywall_settings' ) &&
+            current_user_can( 'manage_options' )
+        ) {
+            $this->save_settings();
+            wp_cache_delete( 'paybutton_admin_wallet_address', 'options' );
+            wp_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
+            exit;
+        }
+    }      
+
     /**
      * This function is hooked into the admin_enqueue_scripts action. It receives a
      * parameter ($hook_suffix) that identifies the current admin page. The function
@@ -67,9 +93,64 @@ class PayButton_Admin {
      * color selection functionality.
     */
     public function enqueue_admin_scripts( $hook_suffix ) {
-        if ( $hook_suffix === 'toplevel_page_paybutton-paywall' ) {
+        // Enqueue the paybutton-admin.css on every admin page
+        wp_enqueue_style(
+            'paybutton-admin',
+            PAYBUTTON_PLUGIN_URL . 'assets/css/paybutton-admin.css',
+            array(),
+            '1.0'
+        );
+
+        // Enqueue paybutton-admin.js on every admin pages
+        wp_enqueue_script(
+            'paybutton-admin-js',
+            PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-admin.js',
+            array('jquery'),
+            '1.0',
+            true
+        );
+
+        if ( $hook_suffix === 'paybutton_page_paybutton-paywall' ) {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );
+
+            // Enqueue the bundled address validator script
+            wp_enqueue_script(
+                'address-validator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
+                array(),
+                '2.0.0',
+                true
+            );
+        }
+
+        // Only load the generator JS on the PayButton Generator page
+        if ( $hook_suffix === 'paybutton_page_paybutton-generator' ) {
+
+            // Enqueue the bundled address validator script
+            wp_enqueue_script(
+                'address-validator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
+                array(),
+                '2.0.0',
+                true
+            );
+
+            wp_enqueue_script(
+                'paybutton-core',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton.js',
+                array('address-validator'),
+                '1.0',
+                true
+            );
+
+            wp_enqueue_script(
+                'paybutton-generator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-generator.js',
+                array('jquery','paybutton-core','address-validator'),
+                '1.0',
+                true
+            );
         }
     }
 
@@ -95,27 +176,30 @@ class PayButton_Admin {
      */
     public function dashboard_page() {
         $args = array(
-            'generate_button_url'  => 'https://paybutton.org/#button-generator',
+            'generate_button_url'  => esc_url( admin_url( 'admin.php?page=paybutton-generator' ) ),
             'paywall_settings_url' => esc_url( admin_url( 'admin.php?page=paybutton-paywall' ) )
         );
         $this->load_admin_template( 'dashboard', $args );
+    }
+
+    public function button_generator_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        $this->load_admin_template( 'paybutton-generator' );
     }
 
     /**
      * Output the Paywall Settings page.
      */
     public function paywall_settings_page() {
-        if ( isset( $_POST['paybutton_paywall_save_settings'] ) ) {
-            $this->save_settings();
-            $settings_saved = true;
-        } else {
-            $settings_saved = false;
-        }
+        
+        $settings_saved = ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] === 'true' );
 
         $args = array(
             'settings_saved'          => $settings_saved,
-            'ecash_address'           => get_option( 'paybutton_paywall_ecash_address', '' ),
-            'default_price'           => get_option( 'paybutton_paywall_default_price', 10 ),
+            'admin_wallet_address'    => get_option( 'paybutton_admin_wallet_address', '' ),
+            'default_price'           => get_option( 'paybutton_paywall_default_price', 5.5 ),
             'current_unit'            => get_option( 'paybutton_paywall_unit', 'XEC' ),
             'btn_text'                => get_option( 'paybutton_text', 'Pay to Unlock' ),
             'hvr_text'                => get_option( 'paybutton_hover_text', 'Send Payment' ),
@@ -138,11 +222,27 @@ class PayButton_Admin {
         $this->load_admin_template( 'paywall-settings', $args );
     }
 
+    public function admin_notice_missing_wallet_address() {
+        if (isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true') {
+            return;
+        }        
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        $address = get_option('paybutton_admin_wallet_address', '');
+        if (empty($address)) {
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>NOTICE:</strong> Please set your wallet address in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>. If you don\'t have an address yet, create a wallet using <a href="https://cashtab.com" target="_blank">Cashtab</a>, <a href="https://www.bitcoinabc.org/electrum/" target="_blank">Electrum ABC</a> or <a href="https://electroncash.org/" target="_blank">Electron Cash</a>.</p>';
+            echo '</div>';
+        }
+    }
+
     /**
      * Save settings submitted via the Paywall Settings page.
      */
     private function save_settings() {
-        $address         = sanitize_text_field( $_POST['ecash_address'] );
+        $address         = sanitize_text_field( $_POST['paybutton_admin_wallet_address'] );
         $unit            = sanitize_text_field( $_POST['unit'] );
         $raw_price       = floatval( $_POST['default_price'] );
         $button_text     = sanitize_text_field( $_POST['paybutton_text'] );
@@ -151,12 +251,14 @@ class PayButton_Admin {
         $color_secondary = sanitize_hex_color( $_POST['paybutton_color_secondary'] );
         $color_tertiary  = sanitize_hex_color( $_POST['paybutton_color_tertiary'] );
         $hide_comments   = isset( $_POST['paybutton_hide_comments_until_unlocked'] ) ? '1' : '0';
+        $paybutton_unlocked_indicator_bg_color   = sanitize_hex_color( $_POST['paybutton_unlocked_indicator_bg_color'] );
+        $paybutton_unlocked_indicator_text_color = sanitize_hex_color( $_POST['paybutton_unlocked_indicator_text_color'] );
 
         if ( $unit === 'XEC' && $raw_price < 5.5 ) {
             $raw_price = 5.5;
         }
 
-        update_option( 'paybutton_paywall_ecash_address', $address );
+        update_option( 'paybutton_admin_wallet_address', $address );
         update_option( 'paybutton_paywall_unit', $unit );
         update_option( 'paybutton_paywall_default_price', $raw_price );
         update_option( 'paybutton_text', $button_text );
@@ -172,8 +274,12 @@ class PayButton_Admin {
         update_option( 'paybutton_profile_button_text_color', sanitize_hex_color( $_POST['profile_button_text_color'] ) ?: '#000' );
         update_option( 'paybutton_logout_button_bg_color', sanitize_hex_color( $_POST['logout_button_bg_color'] ) ?: '#d9534f' );
         update_option( 'paybutton_logout_button_text_color', sanitize_hex_color( $_POST['logout_button_text_color'] ) ?: '#FFFFFF' );
+
         // New unlocked content indicator option:
         update_option( 'paybutton_scroll_to_unlocked', isset( $_POST['paybutton_scroll_to_unlocked'] ) ? '1' : '0' );
+        // Default to #007bff for background, #ffffff for text
+        update_option('paybutton_unlocked_indicator_bg_color', $paybutton_unlocked_indicator_bg_color ?: '#007bff');
+        update_option('paybutton_unlocked_indicator_text_color', $paybutton_unlocked_indicator_text_color ?: '#ffffff');
 
         // Save the blacklist
         if ( isset( $_POST['paybutton_blacklist'] ) ) {
@@ -192,6 +298,17 @@ class PayButton_Admin {
      * Output the Customers page.
      */
     public function customers_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        // Only require nonce when sorting is requested
+        if ( isset( $_GET['orderby'] ) ) {
+            if ( ! isset( $_GET['paybutton_customers_nonce'] )
+            || ! wp_verify_nonce( sanitize_text_field(wp_unslash( $_GET['paybutton_customers_nonce'] )), 'paybutton_customers_sort' )
+            ) {
+                wp_die( 'Security check failed' );
+            }
+        }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
@@ -202,7 +319,7 @@ class PayButton_Admin {
                 'rows' => $wpdb->get_results( $wpdb->prepare(
                     "SELECT /*DISTINCT*/ post_id, tx_amount, tx_hash, tx_timestamp, is_logged_in
                      FROM $table_name
-                     WHERE ecash_address = %s
+                     WHERE pb_paywall_user_wallet_address = %s
                      ORDER BY id DESC",
                     $user_address
                 ) )
@@ -211,7 +328,7 @@ class PayButton_Admin {
             return;
         }
 
-        $allowed_cols = array('ecash_address','unlocked_count','total_paid','last_unlock_ts');
+        $allowed_cols = array('pb_paywall_user_wallet_address','unlocked_count','total_paid','last_unlock_ts');
         $orderby = isset( $_GET['orderby'] ) ? sanitize_text_field( $_GET['orderby'] ) : 'unlocked_count';
         if ( ! in_array( $orderby, $allowed_cols ) ) {
             $orderby = 'unlocked_count';
@@ -223,20 +340,20 @@ class PayButton_Admin {
 
         // Modified to also count how many unlocks happened with is_logged_in=1
         $results = $wpdb->get_results("
-            SELECT ecash_address,
+            SELECT pb_paywall_user_wallet_address,
                    COUNT(post_id) AS unlocked_count,
                    SUM(tx_amount) AS total_paid,
                    SUM(CASE WHEN is_logged_in = 1 THEN 1 ELSE 0 END) AS unlocked_logged_in_count,
                    MAX(tx_timestamp) AS last_unlock_ts
             FROM $table_name
-            GROUP BY ecash_address
+            GROUP BY pb_paywall_user_wallet_address
         ");
 
         $customers = array();
         if ( ! empty( $results ) ) {
             foreach ( $results as $r ) {
                 $customers[] = array(
-                    'ecash_address'            => $r->ecash_address,
+                    'pb_paywall_user_wallet_address' => $r->pb_paywall_user_wallet_address,
                     'unlocked_count'           => (int) $r->unlocked_count,
                     'unlocked_logged_in_count' => (int) $r->unlocked_logged_in_count,
                     'total_paid'               => (float) $r->total_paid,
@@ -273,6 +390,17 @@ class PayButton_Admin {
      * Output the Content page.
      */
     public function content_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        // Only require nonce when sorting is requested
+        if ( isset( $_GET['orderby'] ) ) {
+            if ( ! isset( $_GET['paybutton_content_nonce'] )
+            || ! wp_verify_nonce( sanitize_text_field(wp_unslash( $_GET['paybutton_content_nonce'] )), 'paybutton_content_sort' )
+            ) {
+                wp_die( 'Security check failed' );
+            }
+        }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
@@ -357,9 +485,9 @@ class PayButton_Admin {
             }
         } );
 
-        // Calculate the grand total of XEC earned across all content
+        // Calculate the grand total amount earned across all content
         $grand_total_earned = 0;
-            foreach ( $contentData as $row ) {
+        foreach ( $contentData as $row ) {
             $grand_total_earned += $row['total_earned'];
         }
 

@@ -4,9 +4,12 @@
 ?>
 
 <div class="wrap">
+    <div class="pb-header">
+        <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
+    </div>
     <h1>Content</h1>
     <p><strong>Total Content Unlocks: </strong><?php echo esc_html( intval( $total_unlocks ) ); ?></p>
-    <p><strong>Total Earned (XEC):</strong> <?php echo esc_html( number_format( $grand_total_earned, 2 ) ); ?></p>
+    <p><strong>Total Earned:</strong> <?php echo esc_html( number_format( $grand_total_earned, 2 ) ); ?> XEC</p>
     <?php
     function paybutton_sort_content_table( $col, $label, $orderby, $order, $base_url ) {
         $arrow = '';
@@ -20,6 +23,7 @@
             }
         }
         $url = add_query_arg( array( 'orderby' => $col, 'order' => $next_order ), $base_url );
+        $url = wp_nonce_url( $url, 'paybutton_content_sort', 'paybutton_content_nonce' );
         return '<a href="' . esc_url( $url ) . '">' . esc_html( $label . $arrow ) . '</a>';
     }
     ?>
@@ -57,7 +61,7 @@
             <?php endif; ?>
         </tbody>
     </table>
-    <p style="margin-top: 1rem;">
+    <p class="pb-paragraph-margin-top">
         Sign up for a <a href="https://paybutton.org/signup" target="_blank">FREE PayButton account</a> to get access to advanced payment tracking & business features.
     </p>
 </div>

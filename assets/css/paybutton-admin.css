@@ -1,0 +1,298 @@
+/* paybutton-admin.css */
+
+/* ------------------------------
+   Dashboard page styles
+------------------------------ */
+
+/* Adds a blue top-border below the admin-bar*/
+.pb-header {
+  margin-top: 0 !important;
+  box-sizing: border-box;
+}
+
+.pb-header::before {
+  content: "";
+  position: absolute;
+  top: 0 !important;
+  left: -20px !important;
+  right: -0px !important;
+  height: 5px !important;
+  background: #0074C2;
+}
+
+.paybutton-logo {
+  max-width: 250px;
+  height: 40px;
+  margin-top: 0.8rem;
+  padding-bottom: 0px;
+}
+
+/* Container for the dashboard buttons */
+.paybutton-dashboard-buttons {
+    display: flex;
+    gap: 2rem !important;
+    margin-top: 2rem !important;
+    flex-wrap: wrap;
+}
+
+/* Each dashboard button box */
+.paybutton-dashboard-button {
+    flex: 1;
+    min-width: 250px !important;
+    border: 1px solid #ddd;
+    padding: 2rem !important;
+    text-align: center;
+}
+
+/* Disabled button style (e.g., for "Coming soon") */
+.paybutton-dashboard-button.disabled {
+    opacity: 0.5;
+}
+
+/* The link inside a button */
+.paybutton-dashboard-link {
+    font-size: 1.2em !important;
+    padding: 2rem !important;
+    display: inline-block;
+    width: 100%;
+}
+
+/* For text inside a button */
+.paybutton-dashboard-text {
+    font-size: 1.2em;
+    padding: 2rem;
+    margin: 0;
+}
+
+/* Container for the icons block */
+.paybutton-dashboard-icons {
+    margin-top: 2rem;
+    text-align: left;
+}
+
+/* Each icon link */
+.paybutton-dashboard-icon-link {
+    margin-right: 1rem;
+    text-decoration: none;
+    outline: none;
+}
+
+/* Icon images */
+.paybutton-dashboard-icon {
+    border: none;
+}
+
+/* ------------------------------
+   Button Generator Page Styles
+------------------------------ */
+.pb-menu-new{
+  color: #FF21D0;
+  vertical-align: super;
+  font-size: 9px;
+  font-weight: 600;
+  padding-left: 2px;
+}
+
+.pb-generator-container {
+    display: flex;
+    gap: 2rem;
+  }
+  
+.pb-generator-form {
+  flex: 1;
+  max-width: 400px;
+}
+
+.pb-generator-form label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.pb-generator-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pb-generator-preview {
+  flex: 1;
+}
+
+.pb-generator-preview #pbGenPreview {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  min-height: 80px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  color: #333;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.pb-generator-preview #pbGenPreview:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: #0074C2;
+}
+
+#pbGenShortcode {
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #333;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  resize: vertical;
+  word-break: break-all;
+}
+
+#pbGenToValidationResult{
+  margin-top: 0px;
+}
+
+/* Grouped Colors */
+.pb-generator-colors {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.pb-generator-colors .pb-generator-color {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+} 
+
+.pb-generator-widget {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.pb-generator-widget input[type="checkbox"] {
+  margin-left: 0.7rem;
+}
+
+/* Simple custom tooltip styling */
+.pbTooltip {
+  position: absolute;
+  cursor: help;
+  margin-left: 0.3rem;
+}
+
+.pbTooltip::before {
+  padding: 5px 3px;
+}
+
+.pbTooltip::after {
+  content: '';
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+  z-index: 999999;         /* ensure it stays above WP admin menu */
+  max-width: 300px;        
+  background: #0074C2;
+  color: #fff;
+  padding: 5px 2px;
+  border-radius: 3px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: center;
+}
+
+.pbTooltip:hover::after {
+  content: attr(data-tooltip);
+  opacity: 1;
+  padding: 5px 10px;
+}
+
+.shortcode-note {
+  font-size: 0.9em;
+  color: #555;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+/* ------------------------------
+   Paywall Settings page styles
+------------------------------ */
+#adminAddressValidationResult {
+    margin-left: 10px;
+  }
+
+/* ------------------------------
+   Customers and Content tables
+------------------------------ */
+table.widefat.fixed.striped {
+    table-layout: auto !important;
+    width: 100% !important;
+}
+
+table.widefat.fixed.striped th,
+table.widefat.fixed.striped td {
+    white-space: nowrap;
+    overflow: visible;
+}
+
+/* ------------------------------
+   Utility class for paragrah margin-top
+------------------------------ */
+.pb-paragraph-margin-top {
+    margin-top: 1rem;
+}
+
+/* ------------------------------
+   Utility - Clipboard
+------------------------------ */
+.shortcode-container {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.shortcode-container textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* The overlay covers the textarea but is hidden by default */
+.copy-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(66, 123, 236, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #f6f7f7;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Show the overlay when hovering over the container */
+.shortcode-container:hover .copy-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.copy-overlay .overlay-text {
+  text-align: center;
+  font-weight:bold;
+}

@@ -30,6 +30,7 @@ class PayButton_Public {
         add_shortcode( 'paybutton_profile', array( $this, 'profile_shortcode' ) );
         add_filter( 'comments_open', array( $this, 'filter_comments_open' ), 999, 2 );
         add_action( 'pre_get_comments', array( $this, 'filter_comments_query' ), 999 );
+        add_shortcode( 'paybutton', [ $this, 'paybutton_generator_shortcode' ] );
     }
 
     /**
@@ -41,6 +42,10 @@ class PayButton_Public {
         // Enqueue our new paywall styles
         wp_enqueue_style( 'paywall-styles', PAYBUTTON_PLUGIN_URL . 'assets/css/paywall-styles.css', array(), '1.0' );
 
+        // Read the admin-chosen colors for the unlocked content indicator from options
+        $indicator_bg_color   = get_option('paybutton_unlocked_indicator_bg_color', '#007bff');
+        $indicator_text_color = get_option('paybutton_unlocked_indicator_text_color', '#ffffff');
+
         // Add inline CSS variables.
         $custom_css = "
             :root {
@@ -50,9 +55,11 @@ class PayButton_Public {
                 --profile-button-text-color: " . esc_attr( get_option('paybutton_profile_button_text_color', '#000') ) . ";
                 --logout-button-bg-color: " . esc_attr( get_option('paybutton_logout_button_bg_color', '#d9534f') ) . ";
                 --logout-button-text-color: " . esc_attr( get_option('paybutton_logout_button_text_color', '#fff') ) . ";
+                --pb-unlocked-bg: {$indicator_bg_color};
+                --pb-unlocked-text: {$indicator_text_color};
             }
         ";
-        wp_add_inline_style( 'paybutton-sticky-header', $custom_css );
+        wp_add_inline_style( 'paybutton-sticky-header', esc_attr( $custom_css ) );
 
         // Enqueue the PayButton core script.
         wp_enqueue_script(
@@ -79,15 +86,24 @@ class PayButton_Public {
             true
         );
 
+        // Load a new JS file to render the [paybutton] shortcodes
+        wp_enqueue_script(
+            'paybutton-generator',
+            PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-generator.js',
+            array('paybutton-core'),
+            '1.0',
+            true
+        );
+
         /**
          * Localizes the 'paybutton-cashtab-login' script with variables needed for AJAX interactions.
          *
          * This code makes the following data available to the script as the global object "PaywallAjax":
          * - ajaxUrl: The URL (admin-ajax.php) to which AJAX requests should be sent.
          * - nonce: A security token generated via wp_create_nonce('paybutton_paywall_nonce') to validate AJAX requests.
-         * - isUserLoggedIn: A flag (1 if an eCash address exists in the session, 0 otherwise) indicating the payment-based login state.
-         * - userAddress: The eCash address stored in the session, or an empty string if not set.
-         * - defaultAddress: The default eCash address from the plugin settings.
+         * - isUserLoggedIn: A flag (1 if a user address exists in the session, 0 otherwise) indicating the payment-based login state.
+         * - userAddress: The user address stored in the session, or an empty string if not set.
+         * - defaultAddress: The default wallet address from the plugin settings.
          *
          * These localized variables allow the front-end script to safely and effectively communicate with the back-end.
         */
@@ -95,12 +111,32 @@ class PayButton_Public {
         wp_localize_script( 'paybutton-cashtab-login', 'PaywallAjax', array(
             'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
             'nonce'          => wp_create_nonce( 'paybutton_paywall_nonce' ),
-            'isUserLoggedIn' => ! empty( $_SESSION['cashtab_ecash_address'] ) ? 1 : 0,
-            'userAddress'    => ! empty( $_SESSION['cashtab_ecash_address'] ) ? sanitize_text_field( $_SESSION['cashtab_ecash_address'] ) : '',
-            'defaultAddress' => get_option( 'paybutton_paywall_ecash_address', '' ),
-            //Localize the Unlocked Content Indicator variable
+            'isUserLoggedIn' => PayButton_State::get_address() ? 1 : 0,
+            'userAddress' => sanitize_text_field( PayButton_State::get_address() ),
+            'defaultAddress' => get_option( 'paybutton_admin_wallet_address', '' ),
             'scrollToUnlocked' => get_option( 'paybutton_scroll_to_unlocked', '1' ),
         ) );
+    }
+
+    /**
+     * Renders the [paybutton][/paybutton] shortcode
+    */
+    public function paybutton_generator_shortcode( $atts, $content = null ) {
+        // Provide a default empty JSON if not supplied
+        $atts = shortcode_atts( [ 'config' => '{}' ], $atts );
+        $decoded = json_decode( $atts['config'], true );
+        if ( ! is_array( $decoded ) ) {
+            $decoded = [];
+        }
+
+        // Encode the config for a data attribute
+        $encodedConfig = wp_json_encode( $decoded );
+
+        ob_start();
+        ?>
+        <div class="paybutton-shortcode-container" data-config="<?php echo esc_attr($encodedConfig); ?>"></div>
+        <?php
+        return ob_get_clean();
     }
 
     /**
@@ -118,8 +154,10 @@ class PayButton_Public {
      * Output the sticky header HTML.
      */
     public function output_sticky_header() {
-        $address = ! empty( $_SESSION['cashtab_ecash_address'] ) ? sanitize_text_field( $_SESSION['cashtab_ecash_address'] ) : '';
-        $this->load_public_template( 'sticky-header', array( 'address' => $address ) );
+        $user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
+        $this->load_public_template( 'sticky-header', array(
+            'user_wallet_address' => $user_wallet_address
+        ) );
     }
 
     /**
@@ -151,7 +189,7 @@ class PayButton_Public {
 
         $atts = shortcode_atts( array(
             'price'       => $default_price,
-            'address'     => get_option( 'paybutton_paywall_ecash_address', '' ),
+            'address'     => get_option( 'paybutton_admin_wallet_address', '' ),
             'unit'        => $default_unit,
             'button_text' => $default_text,
             'hover_text'  => $default_hover,
@@ -163,9 +201,7 @@ class PayButton_Public {
             $indicator = '';
             if ( get_option('paybutton_scroll_to_unlocked', '0') === '1' ) {
                 $indicator = '<div id="unlocked" class="unlocked-indicator">
-                                  <hr>
                                   <p>Unlocked Content Below</p>
-                                  <hr>
                               </div>';
             }
             return $indicator . do_shortcode( $content );
@@ -201,41 +237,33 @@ class PayButton_Public {
      * @return string
      */
     public function profile_shortcode() {
-        if ( empty( $_SESSION['cashtab_ecash_address'] ) ) {
+        $user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
+        if ( empty( $user_wallet_address ) ) {
             return '<p>You must be logged in to view your unlocked content.</p>';
         }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
-        $address    = sanitize_text_field( $_SESSION['cashtab_ecash_address'] );
         $rows       = $wpdb->get_results( $wpdb->prepare(
-            "SELECT DISTINCT post_id FROM $table_name WHERE ecash_address = %s ORDER BY id DESC",
-            $address
+            "SELECT DISTINCT post_id FROM $table_name WHERE pb_paywall_user_wallet_address = %s ORDER BY id DESC",
+            $user_wallet_address
         ) );
         ob_start();
-        $this->load_public_template( 'profile', array( 'address' => $address, 'rows' => $rows ) );
+        $this->load_public_template( 'profile', array(
+            'user_wallet_address' => $user_wallet_address,
+            'rows'                => $rows
+        ) );
         return ob_get_clean();
     }
 
     /**
      * Checks if the given post is unlocked for the current user.
-     *
-     * This function first ensures the session is active, then checks:
-     * 1. If the post ID is stored as "unlocked" in the session (`$_SESSION['paid_articles']`).
-     * 2. If the user is logged in via PayButton (`$_SESSION['cashtab_ecash_address']`), 
-     *    it verifies if the post is unlocked in the database (`is_unlocked_in_db`).
-     * 
-     * Returns `true` if the content is unlocked, otherwise `false`.
-    */
-
+     */
     private function post_is_unlocked( $post_id ) {
-        if ( ! session_id() ) {
-            session_start();
-        }
-        if ( ! empty( $_SESSION['paid_articles'][ $post_id ] ) && $_SESSION['paid_articles'][ $post_id ] === true ) {
+        if ( isset( PayButton_State::get_articles()[ $post_id ] ) ) {
             return true;
         }
-        if ( ! empty( $_SESSION['cashtab_ecash_address'] ) ) {
-            $address = sanitize_text_field( $_SESSION['cashtab_ecash_address'] );
+        $addr = PayButton_State::get_address(); if ( $addr ) { 
+            $address = sanitize_text_field( $addr );
             if ( $this->is_unlocked_in_db( $address, $post_id ) ) {
                 return true;
             }
@@ -245,16 +273,12 @@ class PayButton_Public {
 
     /**
      * Check if a post is unlocked in the database.
-     *
-     * @param string $address
-     * @param int $post_id
-     * @return bool
      */
     private function is_unlocked_in_db( $address, $post_id ) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
         $row = $wpdb->get_var( $wpdb->prepare(
-            "SELECT id FROM $table_name WHERE ecash_address = %s AND post_id = %d LIMIT 1",
+            "SELECT id FROM $table_name WHERE pb_paywall_user_wallet_address = %s AND post_id = %d LIMIT 1",
             $address,
             $post_id
         ) );

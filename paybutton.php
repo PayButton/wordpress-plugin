@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PayButton
  * Description: Monetize your content with configurable no-signup paywalls.
- * Version: 2.2.0
+ * Version: 3.2.0
  * Author: PayButton
  * Author URI:  https://github.com/PayButton/wordpress-plugin
  * License:     MIT
@@ -30,6 +30,7 @@ require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-deactivator.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-admin.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-public.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-ajax.php';
+require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-state.php';
 
 /**
  * Registers the plugin's activation and deactivation hooks.
@@ -45,15 +46,6 @@ register_deactivation_hook( __FILE__, array( 'PayButton_Deactivator', 'deactivat
 
 // Initialize plugin functionality.
 add_action( 'plugins_loaded', function() {
-    // Start a PHP session if none exists.
-    if ( ! session_id() ) {
-        session_start();
-    }
-    // Sync cookie value into session.
-    if ( ! empty( $_COOKIE['cashtab_ecash_address'] ) ) {
-        $_SESSION['cashtab_ecash_address'] = sanitize_text_field( $_COOKIE['cashtab_ecash_address'] );
-    }
-
     // Initialize admin functionality if in admin area.
     if ( is_admin() ) {
         new PayButton_Admin();
@@ -64,3 +56,14 @@ add_action( 'plugins_loaded', function() {
     // Initialize AJAX handlers.
     new PayButton_AJAX();
 }, 1);  // Use a priority to ensure this runs before other actions that might depend on session data.
+
+add_action('admin_init', function() {
+    if (get_option('paybutton_activation_redirect', false)) {
+        delete_option('paybutton_activation_redirect');
+        // Prevent redirect during bulk plugin activation
+        if (!isset($_GET['activate-multi'])) {
+            wp_redirect(admin_url('admin.php?page=paybutton-paywall'));
+            exit;
+        }
+    }
+});
