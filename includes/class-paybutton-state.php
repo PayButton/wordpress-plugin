@@ -30,15 +30,36 @@ final class PayButton_State {
         // Get and validate IP address (support IPv4 and IPv6)
         $ip_raw = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
         // Handle multiple IPs in X-Forwarded-For
-        $ip_raw = trim(explode(',', $ip_raw)[0]); // Trim after selecting first IP
-        $ip = filter_var($ip_raw, FILTER_VALIDATE_IP) ? $ip_raw : '';
+        $ip_raw = sanitize_text_field( trim( explode( ',', $ip_raw )[0] ) ); // Trim after selecting first IP
+
+        // Default if we can’t extract a stable prefix
+        $ip_prefix = '';
+
+        // IPv4: grab the first two octets
+        if ( filter_var( $ip_raw, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+            $octets = explode( '.', $ip_raw );
+            if ( count( $octets ) >= 2 ) {
+                $ip_prefix = $octets[0] . '.' . $octets[1];
+            }
+
+        // IPv6: first two hextets
+        } elseif ( filter_var( $ip_raw, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+            // Normalize IP to its full canonical form (optional)
+            // https://www.php.net/manual/en/function.inet-ntop.php
+            // Inet_pton converts IPv6 to binary, inet_ntop converts it back to string
+            $normalized_ip = inet_ntop( inet_pton( $ip_raw ) );
+            $hextets = explode( ':', $normalized_ip );
+            if ( count( $hextets ) >= 2 ) {
+                $ip_prefix = strtolower( $hextets[0] . ':' . $hextets[1] );
+            }
+        }
         
         // Get and sanitize Accept-Language
         $lang_raw = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
         $lang_clean = sanitize_text_field(wp_unslash($lang_raw));
         $lang = preg_match('/^[a-zA-Z]{1,3}(?:-[a-zA-Z]{1,3})?(?:,[a-zA-Z]{1,3}(?:-[a-zA-Z]{1,3})?)*$/i', $lang_clean) ? $lang_clean : '';
         
-        return "{$ua}|{$ip}|{$lang}";
+        return "{$ua}|{$ip_prefix}|{$lang}";
     }
 
     /**
