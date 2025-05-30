@@ -251,8 +251,7 @@ class PayButton_Admin {
         $color_secondary = sanitize_hex_color( $_POST['paybutton_color_secondary'] );
         $color_tertiary  = sanitize_hex_color( $_POST['paybutton_color_tertiary'] );
         $hide_comments   = isset( $_POST['paybutton_hide_comments_until_unlocked'] ) ? '1' : '0';
-        $paybutton_unlocked_indicator_bg_color   = sanitize_hex_color( $_POST['paybutton_unlocked_indicator_bg_color'] );
-        $paybutton_unlocked_indicator_text_color = sanitize_hex_color( $_POST['paybutton_unlocked_indicator_text_color'] );
+        $paybutton_unlocked_indicator_color = sanitize_hex_color( $_POST['paybutton_unlocked_indicator_color'] );
 
         if ( $unit === 'XEC' && $raw_price < 5.5 ) {
             $raw_price = 5.5;
@@ -277,9 +276,8 @@ class PayButton_Admin {
 
         // New unlocked content indicator option:
         update_option( 'paybutton_scroll_to_unlocked', isset( $_POST['paybutton_scroll_to_unlocked'] ) ? '1' : '0' );
-        // Default to #007bff for background, #ffffff for text
-        update_option('paybutton_unlocked_indicator_bg_color', $paybutton_unlocked_indicator_bg_color ?: '#007bff');
-        update_option('paybutton_unlocked_indicator_text_color', $paybutton_unlocked_indicator_text_color ?: '#ffffff');
+        // Default to  #000000 for text
+        update_option('paybutton_unlocked_indicator_color', $paybutton_unlocked_indicator_color ?: '#000000');
 
         // Save the blacklist
         if ( isset( $_POST['paybutton_blacklist'] ) ) {

@@ -23,27 +23,12 @@ class PayButton_Activator {
     }
 
     private static function migrate_old_option() {
-        // --- 1. admin wallet address ---
-        $old_admin_addr = get_option( 'pb_paywall_admin_wallet_address', '' );
-        $new_admin_addr = get_option( 'paybutton_admin_wallet_address', '' );
-        if ( ! empty( $old_admin_addr ) && empty( $new_admin_addr ) ) {
-            update_option( 'paybutton_admin_wallet_address', $old_admin_addr );
-            delete_option( 'pb_paywall_admin_wallet_address' );
-        }
-
-        // --- 2. unlocked‑indicator colours ---
-        $bg_old = get_option( 'unlocked_indicator_bg_color', '' );
-        $bg_new = get_option( 'paybutton_unlocked_indicator_bg_color', '' );
-        if ( ! empty( $bg_old ) && empty( $bg_new ) ) {
-            update_option( 'paybutton_unlocked_indicator_bg_color', $bg_old );
-            delete_option( 'unlocked_indicator_bg_color' );
-        }
-
-        $txt_old = get_option( 'unlocked_indicator_text_color', '' );
-        $txt_new = get_option( 'paybutton_unlocked_indicator_text_color', '' );
+        // --- 1. unlocked‑indicator colours ---
+        $txt_old = get_option( 'paybutton_unlocked_indicator_text_color', '' );
+        $txt_new = get_option( 'paybutton_unlocked_indicator_color', '' );
         if ( ! empty( $txt_old ) && empty( $txt_new ) ) {
-            update_option( 'paybutton_unlocked_indicator_text_color', $txt_old );
-            delete_option( 'unlocked_indicator_text_color' );
+            update_option( 'paybutton_unlocked_indicator_color', $txt_old );
+            delete_option( 'paybutton_unlocked_indicator_text_color' );
         }
     }
 
@@ -74,31 +59,6 @@ class PayButton_Activator {
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
         dbDelta( $sql );
 
-        // Rename old 'ecash_address' column to 'pb_paywall_user_wallet_address', if it still exists
-        $old_col_check = $wpdb->get_var(
-            "SHOW COLUMNS FROM $table_name LIKE 'ecash_address'"
-        );
-        $new_col_check = $wpdb->get_var(
-            "SHOW COLUMNS FROM $table_name LIKE 'pb_paywall_user_wallet_address'"
-        );
-
-        if ( $old_col_check && ! $new_col_check ) {
-            $wpdb->query("ALTER TABLE $table_name CHANGE ecash_address pb_paywall_user_wallet_address VARCHAR(255) NOT NULL");
-        }
-
-        // Rename old index 'ecash_address_idx' to 'pb_paywall_user_wallet_address_idx'
-        $old_idx_check = $wpdb->get_var("
-            SHOW INDEX FROM $table_name WHERE Key_name = 'ecash_address_idx'
-        ");
-        $new_idx_check = $wpdb->get_var("
-            SHOW INDEX FROM $table_name WHERE Key_name = 'pb_paywall_user_wallet_address_idx'
-        ");
-        if ( $old_idx_check && ! $new_idx_check ) {
-            // Drop the old index
-            $wpdb->query("ALTER TABLE $table_name DROP INDEX ecash_address_idx");
-            // Add the new one
-            $wpdb->query("ALTER TABLE $table_name ADD INDEX pb_paywall_user_wallet_address_idx (pb_paywall_user_wallet_address)");
-        }
     }
 
     /**

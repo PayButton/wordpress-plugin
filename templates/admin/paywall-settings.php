@@ -82,30 +82,16 @@
             <tbody id="unlockedIndicatorColors">
                 <tr>
                     <th scope="row">
-                        <label for="paybutton_unlocked_indicator_bg_color">Background Color</label>
+                        <label for="paybutton_unlocked_indicator_color">Indicator Color</label>
                     </th>
                     <td>
-                        <input type="color" name="paybutton_unlocked_indicator_bg_color" id="paybutton_unlocked_indicator_bg_color"
-                            value="<?php echo esc_attr( get_option('paybutton_unlocked_indicator_bg_color', '#007bff') ); ?>">
+                        <input type="color" name="paybutton_unlocked_indicator_color" id="paybutton_unlocked_indicator_color"
+                            value="<?php echo esc_attr( get_option('paybutton_unlocked_indicator_color', '#000000') ); ?>">
                         <button type="button"
-                            onclick="document.getElementById('paybutton_unlocked_indicator_bg_color').value = '#007bff';">
+                            onclick="document.getElementById('paybutton_unlocked_indicator_color').value = '#000000';">
                             Reset
                         </button>
-                        <p class="description">Controls the background color of the indicator.</p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="paybutton_unlocked_indicator_text_color">Text Color</label>
-                    </th>
-                    <td>
-                        <input type="color" name="paybutton_unlocked_indicator_text_color" id="paybutton_unlocked_indicator_text_color"
-                            value="<?php echo esc_attr( get_option('paybutton_unlocked_indicator_text_color', '#ffffff') ); ?>">
-                        <button type="button"
-                            onclick="document.getElementById('paybutton_unlocked_indicator_text_color').value = '#ffffff';">
-                            Reset
-                        </button>
-                        <p class="description">Controls the text color of the indicator.</p>
+                        <p class="description">Controls the text and line colors of the unlocked content indicator.</p>
                     </td>
                 </tr>
             </tbody>
