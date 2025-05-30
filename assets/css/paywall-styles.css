@@ -1,19 +1,21 @@
 .unlocked-indicator {
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background-color: var(--pb-unlocked-bg, #007bff);
-    color: var(--pb-unlocked-text, #ffffff);
-    padding: 8px;
-    font-family: sans-serif;
-    font-weight: bold;
-    font-size: 1.2em;
-    border-radius: 5px;
-    box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  margin: 2rem 0;
+  color: var(--pb-unlocked-indicator-color);      /* Line + text color */
+  font-family: inherit;
+  font-weight: 800;                /* Strong text */
+  font-size: 1rem;
 }
 
-.unlocked-indicator p {
-    margin: 0;
+.unlocked-indicator::before,
+.unlocked-indicator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: currentColor;                  /* Uses the same color as the text */
+}
+
+.unlocked-indicator span {
+  padding: 0 1rem;                           /* Space between text and lines */
 }
