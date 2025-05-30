@@ -17,6 +17,12 @@ class PayButton_Admin {
         add_action( 'admin_notices', array( $this, 'admin_notice_missing_wallet_address' ) );
         // Process form submissions early
         add_action( 'admin_init', array( $this, 'handle_save_settings' ) );
+
+        // New: Posts page PayButton Unlocks column
+        add_filter( 'manage_edit-post_columns',          [ $this, 'register_paybutton_unlocks_column' ] );
+        add_action( 'manage_post_posts_custom_column',   [ $this, 'render_paybutton_unlocks_column' ], 10, 2 );
+        add_filter( 'manage_edit-post_sortable_columns', [ $this, 'register_paybutton_unlocks_sortable' ] );
+        add_filter( 'posts_clauses',                     [ $this, 'apply_paybutton_unlocks_sorting' ], 10, 2 );
     }
 
     /**
@@ -498,5 +504,76 @@ class PayButton_Admin {
             'order'         => $order,
         );
         $this->load_admin_template( 'content', $args );
+    }
+
+    //New methods to show unlock counts for each post on the core WP Posts page
+    /**
+     * 1) Register a new “PayButton Unlocks” column on the Posts page.
+    */
+    public function register_paybutton_unlocks_column( $columns ) {
+        $new = [];
+        foreach ( $columns as $key => $label ) {
+            $new[ $key ] = $label;
+            if ( 'title' === $key ) {
+                $new['unlock_count'] = __( 'PayButton Unlocks', 'paybutton' );
+            }
+        }
+        return $new;
+    }
+
+    /**
+     * 2) Populate our “PayButton Unlocks” column with the total unlock count.
+    */
+    public function render_paybutton_unlocks_column( $column, $post_id ) {
+        if ( 'unlock_count' !== $column ) {
+            return;
+        }
+        global $wpdb;
+        $table = $wpdb->prefix . 'paybutton_paywall_unlocked';
+        $count = (int) $wpdb->get_var( $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$table} WHERE post_id = %d",
+            $post_id
+        ) );
+        echo esc_html( $count );
+    }
+
+    /**
+     * 3) Tell WP that our “unlock_count” column is sortable.
+    */
+    public function register_paybutton_unlocks_sortable( $columns ) {
+        $columns['unlock_count'] = 'unlock_count';
+        return $columns;
+    }
+
+    /**
+     * 4) When sorting by unlock_count, JOIN our table and ORDER BY its COUNT(*).
+    */
+    public function apply_paybutton_unlocks_sorting( $clauses, $query ) {
+        if ( ! is_admin() || ! $query->is_main_query() ) {
+            return $clauses;
+        }
+        // Only when ordering by our column
+        if ( 'unlock_count' !== $query->get( 'orderby' ) ) {
+            return $clauses;
+        }
+
+        global $wpdb;
+        $unlock_table = $wpdb->prefix . 'paybutton_paywall_unlocked';
+
+        // LEFT JOIN: grab per-post unlock counts
+        $clauses['join'] .= "
+            LEFT JOIN (
+                SELECT post_id, COUNT(*) AS unlock_count
+                FROM {$unlock_table}
+                GROUP BY post_id
+            ) AS pb_unlocks
+            ON {$wpdb->posts}.ID = pb_unlocks.post_id
+        ";
+
+        // Use the requested direction, default DESC
+        $dir = strtoupper( $query->get( 'order' ) ) === 'ASC' ? 'ASC' : 'DESC';
+        $clauses['orderby'] = " pb_unlocks.unlock_count {$dir} ";
+
+        return $clauses;
     }
 }
