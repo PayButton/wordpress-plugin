@@ -295,7 +295,17 @@ class PayButton_Admin {
         if ( isset( $_POST['paybutton_public_key'] ) ) {
             $public_key = sanitize_text_field( $_POST['paybutton_public_key'] );
             update_option( 'paybutton_public_key', $public_key );
-        }    
+        }
+        
+        //Front‐end unlock count toggle
+        $enable_frontend_unlock_count = isset( $_POST['paybutton_enable_frontend_unlock_count'] ) ? '1' : '0';
+        update_option( 'paybutton_enable_frontend_unlock_count', $enable_frontend_unlock_count );
+
+        //Front‐end unlock count text color
+        $frontend_unlock_color = isset( $_POST['paybutton_frontend_unlock_color'] )
+            ? sanitize_hex_color( wp_unslash( $_POST['paybutton_frontend_unlock_color'] ) )
+            : '#0074C2';
+        update_option( 'paybutton_frontend_unlock_color', $frontend_unlock_color );
     }
 
     /**

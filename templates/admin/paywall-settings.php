@@ -95,6 +95,44 @@
                     </td>
                 </tr>
             </tbody>
+            <!-- Show Unlock Count on Front‐end -->
+            <tr>
+                <th scope="row">Show Unlock Count on Front‐end</th>
+                <td>
+                    <label>
+                        <input 
+                            type="checkbox" 
+                            name="paybutton_enable_frontend_unlock_count" 
+                            id="paybutton_enable_frontend_unlock_count"
+                            value="1"
+                            <?php checked( get_option( 'paybutton_enable_frontend_unlock_count', '0' ), '1' ); ?>
+                        >
+                        <span>Enable unlock‐count label above PayButton on public posts</span>
+                    </label>
+                </td>
+            </tr>
+
+            <!-- Unlock Count Color Picker (hidden until above box is checked) -->
+            <tr id="paybutton_frontend_unlock_color_row">
+                <th scope="row">
+                    <label for="paybutton_frontend_unlock_color">Unlock Count Label Color</label>
+                </th>
+                <td>
+                    <input 
+                    type="color" 
+                    name="paybutton_frontend_unlock_color" 
+                    id="paybutton_frontend_unlock_color"
+                    value="<?php echo esc_attr( get_option( 'paybutton_frontend_unlock_color', '#0074C2' ) ); ?>"
+                    >
+                    <button type="button"
+                    onclick="document.getElementById('paybutton_frontend_unlock_color').value = '#0074C2';">
+                    Reset
+                    </button>
+                    <p class="description">
+                    Pick the hex color for the unlock count label.
+                    </p>
+                </td>
+            </tr>
             <!-- Sticky Header Settings -->
             <tr>
                 <th colspan="2"><h2>Sticky Header Settings</h2></th>
