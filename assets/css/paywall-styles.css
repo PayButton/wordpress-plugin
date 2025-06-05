@@ -4,9 +4,15 @@
   margin: 2rem 0;
   color: var(--pb-unlocked-indicator-color);      /* Line + text color */
   font-family: inherit;
-  font-weight: 800;                /* Strong text */
   font-size: 1rem;
   text-align:center;
+}
+
+/* Mobile override rule */
+@media (max-width: 600px) {
+  .unlocked-indicator {
+    font-size: 9px;
+  }
 }
 
 .unlocked-indicator::before,
