@@ -16,4 +16,21 @@ jQuery(document).ready(function($) {
     toggleColorFields();
     // On checkbox change
     unlockedCheckbox.on('change', toggleColorFields);
+
+    //NEW: Toggle the “Unlock Count Color” row visibility
+    var enableUnlockCountCheckbox   = $('#paybutton_enable_frontend_unlock_count');
+    var frontendUnlockColorRow      = $('#paybutton_frontend_unlock_color_row');
+
+    function toggleFrontendUnlockColorRow() {
+    if ( enableUnlockCountCheckbox.is(':checked') ) {
+        frontendUnlockColorRow.show();
+    } else {
+        frontendUnlockColorRow.hide();
+    }
+    }
+
+    // On page load
+    toggleFrontendUnlockColorRow();
+    // On checkbox change
+    enableUnlockCountCheckbox.on('change', toggleFrontendUnlockColorRow);
 });

@@ -45,6 +45,9 @@ class PayButton_Public {
         // Read the admin-chosen color for the unlocked content indicator from options
         $pb_indicator_color = get_option('paybutton_unlocked_indicator_color', '#000000');
 
+        // Read the admin-chosen color for the frontend unlock label
+        $frontend_label_color = esc_attr( get_option( 'paybutton_frontend_unlock_color', '#0074C2' ) );
+
         // Add inline CSS variables.
         $custom_css = "
             :root {
@@ -55,6 +58,7 @@ class PayButton_Public {
                 --logout-button-bg-color: " . esc_attr( get_option('paybutton_logout_button_bg_color', '#d9534f') ) . ";
                 --logout-button-text-color: " . esc_attr( get_option('paybutton_logout_button_text_color', '#fff') ) . ";
                 --pb-unlocked-indicator-color: {$pb_indicator_color};
+                --pb-frontend-unlock-color: {$frontend_label_color};
             }
         ";
         wp_add_inline_style( 'paybutton-sticky-header', esc_attr( $custom_css ) );
@@ -222,8 +226,41 @@ class PayButton_Public {
             ),
             'opReturn'    => (string) $post_id //This is a hack to give the PB server the post ID to send it back to WP's DB
         );
+
+        //NEW: If the admin enabled “Show Unlock Count on Front‐end,” and this post is NOT yet unlocked then display unlock count on the front end.
+        $unlock_label_html = '';
+
+        if ( '1' === get_option( 'paybutton_enable_frontend_unlock_count', '0' ) ) {
+            global $wpdb;
+            $unlock_table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
+
+            $unlock_count = (int) $wpdb->get_var( $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$unlock_table_name} WHERE post_id = %d",
+                $post_id
+            ) );
+
+            if ( $unlock_count < 1 ) {
+                $unlock_text = '🔓 Be the first to unlock this content!';
+            } elseif ( $unlock_count === 1 ) {
+                $unlock_text = '🔥 1 unlock and counting...';
+            } else {
+                $unlock_text = "🔥 {$unlock_count} unlocks and counting...";
+            }
+
+            // Build the <p> into a variable, but do not echo yet:
+            $unlock_label_html = '<p class="pb-frontend-unlock-count">' 
+                            . esc_html( $unlock_text ) 
+                            . '</p>';
+        }
+
         ob_start(); //When ob_start() is called, PHP begins buffering all subsequent output instead of printing it to the browser.
         ?>
+
+        <?php
+        //Print the unlock‐count HTML (if enabled) before the PayButton container.
+        echo $unlock_label_html;
+        ?>
+
         <div id="paybutton-container-<?php echo esc_attr( $post_id ); ?>" class="paybutton-container" data-config="<?php echo esc_attr( json_encode( $config ) ); ?>" style="text-align: center;"></div>
         <?php
         return ob_get_clean(); // ob_get_clean() Returns the HTML string to WordPress so it is inserted properly.

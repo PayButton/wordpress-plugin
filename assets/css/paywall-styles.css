@@ -19,3 +19,13 @@
 .unlocked-indicator span {
   padding: 0 1rem;                           /* Space between text and lines */
 }
+
+/* Show Unlock Count on Front-end */
+.pb-frontend-unlock-count {
+  color: var(--pb-frontend-unlock-color, #0074C2);
+  margin-bottom: 1em;
+  text-align: center;
+  font-family: inherit;
+  font-size: 1.2em;
+  font-style: italic;
+}
