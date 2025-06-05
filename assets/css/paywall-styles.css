@@ -6,16 +6,20 @@
   font-family: inherit;
   font-weight: 800;                /* Strong text */
   font-size: 1rem;
+  text-align:center;
 }
 
 .unlocked-indicator::before,
 .unlocked-indicator::after {
   content: "";
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 20px;
   height: 1px;
   background: currentColor;                  /* Uses the same color as the text */
 }
 
 .unlocked-indicator span {
+  display: inline-block;
   padding: 0 1rem;                           /* Space between text and lines */
+  word-break: break-word; 
 }
