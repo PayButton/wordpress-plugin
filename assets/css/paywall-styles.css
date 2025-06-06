@@ -30,7 +30,7 @@
   word-break: break-word; 
 }
 
-/* Show Unlock Count on Front-end */
+/* Show Unlock Count on the Front-end */
 .pb-frontend-unlock-count {
   color: var(--pb-frontend-unlock-color, #0074C2);
   margin-bottom: 1em;
