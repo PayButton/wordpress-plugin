@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PayButton
  * Description: Monetize your content with configurable no-signup paywalls.
- * Version: 3.2.0
+ * Version: 3.3.0
  * Author: PayButton
  * Author URI:  https://github.com/PayButton/wordpress-plugin
  * License:     MIT
