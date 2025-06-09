@@ -5,7 +5,7 @@ Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.0
-Stable tag: 3.2.0
+Stable tag: 3.3.0
 PayButton Client: 4.1.0
 PayButton Client URI: https://github.com/PayButton/paybutton
 License: MIT
@@ -74,6 +74,12 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Changelog ==
 
+= 3.3.0 (2025/06/09) =
+* Relaxed IP fingerprinting to use only the first two octets (IPv4) or hextets (IPv6) in the cookie fingerprint to avoid frequent logouts from dynamic IP changes.
+* New feature to display unlock counts publicly above the paywall button on posts.
+* Added sortable "PayButton Unlocks" column to the Posts admin screen to display total unlock counts per post.
+* Introduced a new style for the 'unlocked content indicator'.
+
 = 3.2.0 (2025/05/21) =
 * Sanitized and validated cookies and data.
 * Fixed nonce logic in Content & Customers page.
@@ -122,6 +128,6 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Upgrade Notice ==
 
-= 3.2.0 =
-Upgrade to version 3.2.0 for improved compatibility and reliability.
+= 3.3.0 =
+Upgrade to version 3.3.0 for improved compatibility and reliability.
 =======
