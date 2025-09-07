@@ -70,7 +70,7 @@ class PayButton_Public {
             'paybutton-core',
             PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton.js', // Local file path
             array(),
-            '1.0',
+            '5.0.2',
             false
         );
 
