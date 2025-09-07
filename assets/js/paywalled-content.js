@@ -44,19 +44,65 @@ jQuery(document).ready(function($) {
                     tx_amount: tx.amount || '',
                     tx_timestamp: tx.timestamp || '',
                     // NEW: Pass the first input address to store in the DB even for non-logged-in users
-                    user_address: (tx.inputAddresses && tx.inputAddresses.length > 0) ? tx.inputAddresses[0] : ''
+                    user_address: (tx.inputAddresses && tx.inputAddresses.length > 0) ? tx.inputAddresses[0] : '',
+                    autoClose: configData.autoClose
                 },
-                success: function() {
-                    setTimeout(function() {
-                        // Get the base URL (without any query parameters or hash)
-                        var baseUrl = location.href.split('#')[0].split('?')[0];
-                        // Build a new URL that includes a timestamp parameter to bust caches
-                        var newUrl = baseUrl + '?t=' + Date.now() + '#unlocked';
-                        // Update the URL in the address bar without triggering a navigation
-                        window.history.replaceState(null, '', newUrl);
-                        // Force a reload
-                        location.reload();
-                    }, 2000);
+                success: function () {
+                    setTimeout(function () {
+                        jQuery.ajax({
+                            method: 'POST',
+                            url: PaywallAjax.ajaxUrl,
+                            data: {
+                                action: 'fetch_unlocked_content',
+                                post_id: configData.postId,
+                                security: PaywallAjax.nonce
+                            },
+                            success: function (resp) {
+                                if (resp && resp.success) {
+                                    // 1) Replace only the paywalled block content
+                                    var $wrapper = jQuery('#pb-paywall-' + configData.postId);
+                                    if ($wrapper.length && resp.data.unlocked_html) {
+                                        $wrapper.html(resp.data.unlocked_html);
+                                    }
+
+                                    // 2) Replace the placeholder where the WP theme wants comments
+                                    if (resp.data.comments_html) {
+                                        // 1) Prefer our placeholder (exact spot theme expects)
+                                        var $slot = jQuery('#paybutton-comments-placeholder');
+                                        if ($slot.length) {
+                                            $slot.replaceWith(resp.data.comments_html);
+                                        } else {
+                                            // 2) Fallback: replace a visible comments container if present
+                                            var $comments = jQuery('#comments, .comments-area').first();
+                                            if ($comments.length) {
+                                                $comments.replaceWith(resp.data.comments_html);
+                                            } else if ($wrapper.length) {
+                                                // 3) Last resort: append just after the content wrapper
+                                                $wrapper.after(resp.data.comments_html);
+                                            }
+                                        }
+                                    }
+                                    // 3) Re-init threaded replies if enabled and available
+                                    if (typeof addComment !== 'undefined' && addComment && typeof addComment.init === 'function') {
+                                        addComment.init();
+                                    }
+
+                                    // Optional scroll-to-unlocked-content-indicator + Cache Busting Mechanism
+                                    var baseUrl = location.href.split('#')[0].split('?')[0];
+                                    var newUrl = baseUrl + '?t=' + Date.now() + '#unlocked';
+                                    window.history.replaceState(null, '', newUrl);
+
+                                    if (PaywallAjax.scrollToUnlocked === '1' || PaywallAjax.scrollToUnlocked === 1) {
+                                        var $target = jQuery('#unlocked');
+                                        if ($target.length) {
+                                            var headerOffset = 80;
+                                            jQuery('html, body').animate({ scrollTop: $target.offset().top - headerOffset }, 500);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }, 20); // Slight delay to ensure DB/cookie update is processed before fetching content
                 }
             });
         };
@@ -69,7 +115,8 @@ jQuery(document).ready(function($) {
             successText: configData.successText,
             onSuccess: configData.onSuccess,
             theme: configData.theme,
-            opReturn: configData.opReturn //This is a hack to give the PB server the post ID to send it back to WP's DB
+            opReturn: configData.opReturn, //This is a hack to give the PB server the post ID to send it back to WP's DB
+            autoClose: configData.autoClose
         });
     });
 });

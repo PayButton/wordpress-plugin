@@ -31,6 +31,8 @@ class PayButton_Public {
         add_filter( 'comments_open', array( $this, 'filter_comments_open' ), 999, 2 );
         add_action( 'pre_get_comments', array( $this, 'filter_comments_query' ), 999 );
         add_shortcode( 'paybutton', [ $this, 'paybutton_generator_shortcode' ] );
+        // Add a filter to replace the comments template with our custom one in order to match the user's theme
+        add_filter( 'comments_template', array( $this, 'paybutton_use_comments_placeholder' ), 999 );
     }
 
     /**
@@ -96,6 +98,11 @@ class PayButton_Public {
             '1.0',
             true
         );
+
+        // Load the comment reply script
+        if ( is_singular() && get_option( 'thread_comments' ) ) {
+            wp_enqueue_script( 'comment-reply' );
+        }
 
         /**
          * Localizes the 'paybutton-cashtab-login' script with variables needed for AJAX interactions.
@@ -224,7 +231,8 @@ class PayButton_Public {
                     'tertiary'  => $color_tertiary,
                 ),
             ),
-            'opReturn'    => (string) $post_id //This is a hack to give the PB server the post ID to send it back to WP's DB
+            'opReturn'    => (string) $post_id, //This is a hack to give the PB server the post ID to send it back to WP's DB
+            'autoClose'   => true
         );
 
         //NEW: If the admin enabled “Show Unlock Count on Front‐end,” and this post is NOT yet unlocked then display unlock count on the front end.
@@ -255,13 +263,13 @@ class PayButton_Public {
 
         ob_start(); //When ob_start() is called, PHP begins buffering all subsequent output instead of printing it to the browser.
         ?>
-
-        <?php
-        //Print the unlock‐count HTML (if enabled) before the PayButton container.
-        echo $unlock_label_html;
-        ?>
-
-        <div id="paybutton-container-<?php echo esc_attr( $post_id ); ?>" class="paybutton-container" data-config="<?php echo esc_attr( json_encode( $config ) ); ?>" style="text-align: center;"></div>
+        <div id="pb-paywall-<?php echo esc_attr( $post_id ); ?>" class="pb-paywall">
+            <?php echo wp_kses_post($unlock_label_html) ?>
+            <div id="paybutton-container-<?php echo esc_attr( $post_id ); ?>"
+                class="paybutton-container"
+                data-config="<?php echo esc_attr( json_encode( $config ) ); ?>"
+                style="text-align: center;"></div>
+        </div>
         <?php
         return ob_get_clean(); // ob_get_clean() Returns the HTML string to WordPress so it is inserted properly.
     }
@@ -339,7 +347,7 @@ class PayButton_Public {
         if ( $this->post_is_unlocked( $post_id ) ) {
             return $open;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -362,5 +370,31 @@ class PayButton_Public {
         if ( ! $this->post_is_unlocked( $post_id ) ) {
             $comment_query->query_vars['comment__in'] = array(0);
         }
+    }
+
+    /**
+     * Use a custom comments template if the post is paywalled.
+     *
+     * @param string $template The path to the comments template.
+     * @return string The modified template path.
+    */
+    public function paybutton_use_comments_placeholder( $template ) {
+        if ( ! is_singular() || is_admin() ) {
+            return $template;
+        }
+        global $post;
+        if ( ! $post ) {
+            return $template;
+        }
+
+        // If this post is NOT unlocked in the cookie, use our placeholder template.
+        $is_unlocked = $this->post_is_unlocked( $post->ID );
+        if ( ! $is_unlocked ) {
+            $placeholder = plugin_dir_path( dirname( __FILE__ ) ) . 'templates/public/comments-placeholder.php';
+            if ( file_exists( $placeholder ) ) {
+                return $placeholder;
+            }
+        }
+        return $template;
     }
 }

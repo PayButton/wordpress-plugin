@@ -38,6 +38,11 @@ class PayButton_AJAX {
 
         add_action( 'wp_ajax_payment_trigger', array( $this, 'payment_trigger' ) );
         add_action( 'wp_ajax_nopriv_payment_trigger', array( $this, 'payment_trigger' ) );
+
+        // Function that improves UX by fetching unlocked content without reloading page
+        add_action( 'wp_ajax_fetch_unlocked_content', array( $this, 'fetch_unlocked_content' ) );
+        add_action( 'wp_ajax_nopriv_fetch_unlocked_content', array( $this, 'fetch_unlocked_content' ) );
+
     }
     /**
      * Payment Trigger Handler with Cryptographic Verification
@@ -207,7 +212,7 @@ class PayButton_AJAX {
 
     /**
      * Marks a payment as successful and unlocks content.
-     */
+    */
     public function mark_payment_successful() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
 
@@ -253,6 +258,148 @@ class PayButton_AJAX {
             }
         }
         wp_send_json_success();
+    }
+
+    /**
+     * Fetches the unlocked content and comments for a post via AJAX to display on the front-end without reloading the page.
+     *
+     * This function verifies the AJAX nonce for security,
+     * checks if the current user has unlocked the specified post,
+     * and if so, retrieves and returns the inner content of the [paywalled_content] shortcode
+     * along with the comments template HTML.
+    */
+    public function fetch_unlocked_content() {
+        check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
+
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if ( ! $post_id ) {
+            wp_send_json_error( array( 'message' => 'Missing post_id' ), 400 );
+        }
+
+        if ( ! $this->is_unlocked_for_current_user( $post_id ) ) {
+            wp_send_json_error( array( 'message' => 'Not unlocked' ), 403 );
+        }
+
+        $post = get_post( $post_id );
+        if ( ! $post || 'publish' !== $post->post_status ) {
+            wp_send_json_error( array( 'message' => 'Invalid post' ), 404 );
+        }
+
+        // Extract inner [paywalled_content]...[/paywalled_content] shortcode content
+        $inner = $this->extract_shortcode_inner_content( $post->post_content );
+
+        // Include the optional unlocked content indicator if enabled
+        $indicator = '';
+        if ( get_option('paybutton_scroll_to_unlocked', '0') === '1' ) {
+            $indicator = '<div id="unlocked" class="unlocked-indicator"><span>Unlocked Content Below</span></div>';
+        }
+
+        // Render the inner content like the shortcode does
+        $GLOBALS['post'] = $post;
+        setup_postdata( $post );
+
+        // Some filters check in_the_loop(), so temporarily set it
+        global $wp_query;
+        $__prev_in_loop = isset( $wp_query ) ? $wp_query->in_the_loop : null;
+        if ( isset( $wp_query ) ) {
+            $wp_query->in_the_loop = true;
+        }
+
+        // Run the full post-content pipeline (blocks, shortcodes, embeds, autop, etc.) filter
+        $body = apply_filters( 'the_content', $inner );
+
+        // Restore the flag
+        if ( isset( $wp_query ) ) {
+            $wp_query->in_the_loop = $__prev_in_loop;
+        }
+
+        $unlocked_html = $indicator . $body;
+
+        // Render the theme’s comments template and capture its HTML
+        $GLOBALS['post'] = $post;
+        setup_postdata( $post );
+
+        // TEMP filters to bypass paywall comment blockers on AJAX
+        $force_open = function( $open, $pid ) use ( $post ) {
+            return ( intval($pid) === intval($post->ID) ) ? true : $open;
+        };
+        add_filter( 'comments_open', $force_open, 10000, 2 );
+
+        $unblock_query = function( $query ) use ( $post ) {
+            // Only touch the query for this exact post
+            if ( isset( $query->query_vars['post_id'] ) && intval( $query->query_vars['post_id'] ) === intval( $post->ID ) ) {
+                // If another filter hid comments with comment__in => array(0), undo it
+                if ( isset( $query->query_vars['comment__in'] ) && $query->query_vars['comment__in'] === array(0) ) {
+                    unset( $query->query_vars['comment__in'] );
+                }
+                // Ensure approved comments are queried normally
+                $query->query_vars['status'] = 'approve';
+            }
+        };
+        add_action( 'pre_get_comments', $unblock_query, 10000 );
+
+        // Some WP themes rely on this being set when rendering comments out of loop contexts
+        global $withcomments;
+        $withcomments = true;
+
+        ob_start();
+        comments_template();
+        $comments_html = ob_get_clean();
+
+        // Remove temp filters and clean up
+        remove_filter( 'comments_open', $force_open, 10000 );
+        remove_action( 'pre_get_comments', $unblock_query, 10000 );
+        wp_reset_postdata();
+
+        wp_send_json_success( array(
+            'unlocked_html' => $unlocked_html,
+            'comments_html' => $comments_html,
+        ) );
+    }
+
+    /**
+     * Checks if the current user has unlocked the specified post.
+     *
+     * This function first checks if the post ID is present in the cookie-based
+     * unlock state. If not found, it then checks the database for an unlock record
+     * associated with the user's wallet address (if available).
+     *
+     * @param int $post_id The ID of the post to check.
+     * @return bool True if the post is unlocked for the current user, false otherwise.
+    */
+    private function is_unlocked_for_current_user( $post_id ) {
+        // Cookie-based (set by mark_payment_successful)
+        $articles = PayButton_State::get_articles();
+        if ( isset( $articles[ $post_id ] ) ) {
+            return true;
+        }
+        // Also allow DB-based unlock if the user has a wallet "login"
+        $addr = PayButton_State::get_address();
+        if ( $addr ) {
+            global $wpdb;
+            $table = $wpdb->prefix . 'paybutton_paywall_unlocked';
+            $found = $wpdb->get_var( $wpdb->prepare(
+                "SELECT id FROM $table WHERE pb_paywall_user_wallet_address = %s AND post_id = %d LIMIT 1",
+                sanitize_text_field( $addr ),
+                $post_id
+            ) );
+            if ( $found ) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Extracts the inner content of the [paywalled_content] shortcode from the post content.
+     *
+     * @param string $post_content The full post content.
+     * @return string The inner content of the shortcode, or an empty string if not found.
+    */
+    private function extract_shortcode_inner_content( $post_content ) {
+        $inner = '';
+        if ( preg_match( '/\\[paywalled_content[^\\]]*\\](.*?)\\[\\/paywalled_content\\]/is', $post_content, $m ) ) {
+            $inner = $m[1];
+        }
+        return $inner;
     }
 
     /**
