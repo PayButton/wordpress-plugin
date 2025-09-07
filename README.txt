@@ -5,8 +5,8 @@ Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.0
-Stable tag: 3.3.0
-PayButton Client: 4.1.0
+Stable tag: 4.0.0
+PayButton Client: 5.0.2
 PayButton Client URI: https://github.com/PayButton/paybutton
 License: MIT
 License URI: https://github.com/PayButton/wordpress-plugin/blob/master/LICENSE
@@ -74,6 +74,11 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Changelog ==
 
+= 4.0.0 (2025/09/07) =
+* Added support for no-reload content unlocks.
+* The paywall payment dialog now closes automatically.
+* Upgraded the PayButton dependency to v5.0.2.
+
 = 3.3.0 (2025/06/09) =
 * Relaxed IP fingerprinting to use only the first two octets (IPv4) or hextets (IPv6) in the cookie fingerprint to avoid frequent logouts from dynamic IP changes.
 * New feature to display unlock counts publicly above the paywall button on posts.
@@ -128,6 +133,6 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Upgrade Notice ==
 
-= 3.3.0 =
-Upgrade to version 3.3.0 for improved compatibility and reliability.
+= 4.0.0 =
+Upgrade to version 4.0.0 for improved compatibility and reliability.
 =======
