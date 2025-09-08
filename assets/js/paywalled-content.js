@@ -65,28 +65,6 @@ jQuery(document).ready(function($) {
                                         $wrapper.html(resp.data.unlocked_html);
                                     }
 
-                                    // 2) Replace the placeholder where the WP theme wants comments
-                                    if (resp.data.comments_html) {
-                                        // 1) Prefer our placeholder (exact spot theme expects)
-                                        var $slot = jQuery('#paybutton-comments-placeholder');
-                                        if ($slot.length) {
-                                            $slot.replaceWith(resp.data.comments_html);
-                                        } else {
-                                            // 2) Fallback: replace a visible comments container if present
-                                            var $comments = jQuery('#comments, .comments-area').first();
-                                            if ($comments.length) {
-                                                $comments.replaceWith(resp.data.comments_html);
-                                            } else if ($wrapper.length) {
-                                                // 3) Last resort: append just after the content wrapper
-                                                $wrapper.after(resp.data.comments_html);
-                                            }
-                                        }
-                                    }
-                                    // 3) Re-init threaded replies if enabled and available
-                                    if (typeof addComment !== 'undefined' && addComment && typeof addComment.init === 'function') {
-                                        addComment.init();
-                                    }
-
                                     // Optional scroll-to-unlocked-content-indicator + Cache Busting Mechanism
                                     var baseUrl = location.href.split('#')[0].split('?')[0];
                                     var newUrl = baseUrl + '?t=' + Date.now() + '#unlocked';
