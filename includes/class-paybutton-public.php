@@ -28,11 +28,11 @@ class PayButton_Public {
         add_action( 'wp_body_open', array( $this, 'output_sticky_header' ) );
         add_shortcode( 'paywalled_content', array( $this, 'paybutton_paywall_shortcode' ) );
         add_shortcode( 'paybutton_profile', array( $this, 'profile_shortcode' ) );
-        add_filter( 'comments_open', array( $this, 'filter_comments_open' ), 999, 2 );
-        add_action( 'pre_get_comments', array( $this, 'filter_comments_query' ), 999 );
         add_shortcode( 'paybutton', [ $this, 'paybutton_generator_shortcode' ] );
-        // Add a filter to replace the comments template with our custom one in order to match the user's theme
-        add_filter( 'comments_template', array( $this, 'paybutton_use_comments_placeholder' ), 999 );
+        // Hard-block comment creation server-side if paywalled content locked
+        add_filter( 'preprocess_comment', array( $this, 'block_comment_if_locked' ) );
+        // Hard-block comment creation via REST API as well when the paywalled content is locked
+        add_filter( 'rest_pre_insert_comment', array( $this, 'block_comment_if_locked_rest' ), 10, 2 );
     }
 
     /**
@@ -316,7 +316,7 @@ class PayButton_Public {
 
     /**
      * Check if a post is unlocked in the database.
-     */
+    */
     private function is_unlocked_in_db( $address, $post_id ) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
@@ -329,72 +329,51 @@ class PayButton_Public {
     }
 
     /**
-     * Filter the "comments_open" value to hide comments until content is unlocked.
-     *
-     * @param bool $open
-     * @param int $post_id
-     * @return bool
-     */
-    public function filter_comments_open( $open, $post_id ) {
-        if ( '1' !== get_option( 'paybutton_hide_comments_until_unlocked', '1' ) ) {
-            return $open;
-        }
-        $post = get_post( $post_id );
-        if ( ! $post ) return $open;
-        if ( stripos( $post->post_content, '[paywalled_content' ) === false ) {
-            return $open;
-        }
-        if ( $this->post_is_unlocked( $post_id ) ) {
-            return $open;
-        }
-        return true;
-    }
-
-    /**
-     * Modify the comments query so that comments aren’t shown on locked posts.
-     *
-     * @param WP_Comment_Query $comment_query
-     */
-    public function filter_comments_query( $comment_query ) {
-        if ( is_admin() ) return;
-        if ( '1' !== get_option( 'paybutton_hide_comments_until_unlocked', '1' ) ) {
-            return;
-        }
-        $post_id = isset( $comment_query->query_vars['post_id'] ) ? $comment_query->query_vars['post_id'] : 0;
-        if ( ! $post_id ) return;
-        $post = get_post( $post_id );
-        if ( ! $post ) return;
-        if ( stripos( $post->post_content, '[paywalled_content' ) === false ) {
-            return;
-        }
-        if ( ! $this->post_is_unlocked( $post_id ) ) {
-            $comment_query->query_vars['comment__in'] = array(0);
-        }
-    }
-
-    /**
-     * Use a custom comments template if the post is paywalled.
-     *
-     * @param string $template The path to the comments template.
-     * @return string The modified template path.
+     * Is the given post paywalled (contains the [paywalled_content] shortcode)? 
     */
-    public function paybutton_use_comments_placeholder( $template ) {
-        if ( ! is_singular() || is_admin() ) {
-            return $template;
-        }
-        global $post;
-        if ( ! $post ) {
-            return $template;
-        }
+    private function is_paywalled_post( $post_id ) {
+        $post = get_post( $post_id );
+        if ( ! $post ) return false;
+        return ( stripos( $post->post_content, '[paywalled_content' ) !== false );
+    }
 
-        // If this post is NOT unlocked in the cookie, use our placeholder template.
-        $is_unlocked = $this->post_is_unlocked( $post->ID );
-        if ( ! $is_unlocked ) {
-            $placeholder = plugin_dir_path( dirname( __FILE__ ) ) . 'templates/public/comments-placeholder.php';
-            if ( file_exists( $placeholder ) ) {
-                return $placeholder;
-            }
+    /** 
+     * Server-side comment blocking for classic form submissions
+    */
+    public function block_comment_if_locked( $commentdata ) {
+        $post_id = isset( $commentdata['comment_post_ID'] ) ? intval( $commentdata['comment_post_ID'] ) : 0;
+
+        if ( $post_id
+            && '1' === get_option( 'paybutton_hide_comments_until_unlocked', '1' )
+            && $this->is_paywalled_post( $post_id )
+            && ! $this->post_is_unlocked( $post_id ) ) {
+
+            wp_die(
+                esc_html__( 'Please unlock this content before posting a comment.', 'paybutton' ),
+                esc_html__( 'Unlock required', 'paybutton' ),
+                array( 'response' => 403 )
+            );
         }
-        return $template;
+        return $commentdata;
+    }
+
+    /** 
+     * Server-side comment blocking for REST API (block themes / AJAX submissions) 
+    */
+    public function block_comment_if_locked_rest( $prepared, $request ) {
+        $post_id = isset( $prepared['comment_post_ID'] ) ? (int) $prepared['comment_post_ID'] : 0;
+
+        if ( $post_id
+            && '1' === get_option( 'paybutton_hide_comments_until_unlocked', '1' )
+            && $this->is_paywalled_post( $post_id )
+            && ! $this->post_is_unlocked( $post_id ) ) {
+
+            return new WP_Error(
+                'paybutton_paywall_comment_blocked',
+                __( 'Please unlock this content before posting a comment.', 'paybutton' ),
+                array( 'status' => 403 )
+            );
+        }
+        return $prepared;
     }
 }

@@ -61,11 +61,11 @@
                 <td><input type="color" name="paybutton_color_tertiary" id="paybutton_color_tertiary" value="<?php echo esc_attr( $clr_tertiary ); ?>"></td>
             </tr>
             <tr>
-                <th scope="row">Hide Comments Until Unlocked</th>
+                <th scope="row">Paywall Comments</th>
                 <td>
                     <label>
                         <input type="checkbox" name="paybutton_hide_comments_until_unlocked" value="1" <?php checked( $hide_comments_checked, true ); ?>>
-                        <span>Hide the comment box on paywalled posts until the content is unlocked.</span>
+                        <span>Don't allow comments until the paywalled content is unlocked by the user.</span>
                     </label>
                 </td>
             </tr>

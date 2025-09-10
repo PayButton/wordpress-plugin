@@ -265,8 +265,7 @@ class PayButton_AJAX {
      *
      * This function verifies the AJAX nonce for security,
      * checks if the current user has unlocked the specified post,
-     * and if so, retrieves and returns the inner content of the [paywalled_content] shortcode
-     * along with the comments template HTML.
+     * and if so, retrieves and returns the inner content of the [paywalled_content] shortcode.
     */
     public function fetch_unlocked_content() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
@@ -312,48 +311,10 @@ class PayButton_AJAX {
         if ( isset( $wp_query ) ) {
             $wp_query->in_the_loop = $__prev_in_loop;
         }
-
-        $unlocked_html = $indicator . $body;
-
-        // Render the theme’s comments template and capture its HTML
-        $GLOBALS['post'] = $post;
-        setup_postdata( $post );
-
-        // TEMP filters to bypass paywall comment blockers on AJAX
-        $force_open = function( $open, $pid ) use ( $post ) {
-            return ( intval($pid) === intval($post->ID) ) ? true : $open;
-        };
-        add_filter( 'comments_open', $force_open, 10000, 2 );
-
-        $unblock_query = function( $query ) use ( $post ) {
-            // Only touch the query for this exact post
-            if ( isset( $query->query_vars['post_id'] ) && intval( $query->query_vars['post_id'] ) === intval( $post->ID ) ) {
-                // If another filter hid comments with comment__in => array(0), undo it
-                if ( isset( $query->query_vars['comment__in'] ) && $query->query_vars['comment__in'] === array(0) ) {
-                    unset( $query->query_vars['comment__in'] );
-                }
-                // Ensure approved comments are queried normally
-                $query->query_vars['status'] = 'approve';
-            }
-        };
-        add_action( 'pre_get_comments', $unblock_query, 10000 );
-
-        // Some WP themes rely on this being set when rendering comments out of loop contexts
-        global $withcomments;
-        $withcomments = true;
-
-        ob_start();
-        comments_template();
-        $comments_html = ob_get_clean();
-
-        // Remove temp filters and clean up
-        remove_filter( 'comments_open', $force_open, 10000 );
-        remove_action( 'pre_get_comments', $unblock_query, 10000 );
         wp_reset_postdata();
 
         wp_send_json_success( array(
-            'unlocked_html' => $unlocked_html,
-            'comments_html' => $comments_html,
+            'unlocked_html' => $indicator . $body,
         ) );
     }
 
