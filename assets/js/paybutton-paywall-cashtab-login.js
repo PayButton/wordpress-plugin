@@ -60,7 +60,6 @@ function renderLoginPaybutton() {
             transactionAttrs = tx;
         },
         onClose: function () {
-            console.log('Login Payment TX:', transactionAttrs);
             if (transactionAttrs && transactionAttrs.inputAddresses && transactionAttrs.inputAddresses.length > 0) {
                 const userAddress = transactionAttrs.inputAddresses[0];
                 handleLogin(userAddress);
