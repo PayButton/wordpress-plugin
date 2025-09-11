@@ -45,7 +45,8 @@ function handleLogout() {
  * Render the "Login via Cashtab" PayButton.
  * (5.5 XEC is hard-coded.)
  */
-let transactionAttrs;
+// Shared state: last successful PayButton tx captured in onSuccess, consumed in onClose.
+let transactionAttrs = null;
 function renderLoginPaybutton() {
     PayButton.render(document.getElementById('loginPaybutton'), {
         to: PaywallAjax.defaultAddress,
