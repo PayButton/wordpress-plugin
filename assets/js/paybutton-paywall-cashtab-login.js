@@ -45,6 +45,7 @@ function handleLogout() {
  * Render the "Login via Cashtab" PayButton.
  * (5.5 XEC is hard-coded.)
  */
+let transactionAttrs;
 function renderLoginPaybutton() {
     PayButton.render(document.getElementById('loginPaybutton'), {
         to: PaywallAjax.defaultAddress,
@@ -53,14 +54,15 @@ function renderLoginPaybutton() {
         text: 'Login via Cashtab',
         hoverText: 'Click to Login',
         successText: 'Success!',
+        autoClose: true,
         onSuccess: function (tx) {
-            console.log('Login Payment TX:', tx);
-            if (tx && tx.inputAddresses && tx.inputAddresses.length > 0) {
-                const userAddress = tx.inputAddresses[0];
-                // Add a 2500 ms delay before processing the login so that the PB's ding sound dosen't get cutoff.
-                setTimeout(function(){
-                    handleLogin(userAddress);
-                }, 2500);
+            transactionAttrs = tx;
+        },
+        onClose: function () {
+            console.log('Login Payment TX:', transactionAttrs);
+            if (transactionAttrs && transactionAttrs.inputAddresses && transactionAttrs.inputAddresses.length > 0) {
+                const userAddress = transactionAttrs.inputAddresses[0];
+                handleLogin(userAddress);
             }
         }
     });
