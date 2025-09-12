@@ -46,8 +46,8 @@ function handleLogout() {
  * (5.5 XEC is hard-coded.)
  */
 function renderLoginPaybutton() {
-    // Shared state: last successful PayButton tx captured in onSuccess, consumed in onClose.
-    let transactionAttrs = null;
+    // Shared state: login address captured in onSuccess, consumed in onClose.
+    let loginAddr = null;
     PayButton.render(document.getElementById('loginPaybutton'), {
         to: PaywallAjax.defaultAddress,
         amount: 5.5,
@@ -57,15 +57,14 @@ function renderLoginPaybutton() {
         successText: 'Login Successful!',
         autoClose: true,
         onSuccess: function (tx) {
-            transactionAttrs = { inputAddresses: tx?.inputAddresses ?? [] };
+            loginAddr = tx?.inputAddresses?.[0] ?? null;
         },
         onClose: function () {
-            const addr = transactionAttrs?.inputAddresses?.[0];
-            if (addr) {
-                handleLogin(addr);
+            if (loginAddr) {
+                handleLogin(loginAddr);
             }
             // Prevent stale reuse on subsequent opens
-            transactionAttrs = null;
+            loginAddr = null;
         }
     });
 }
