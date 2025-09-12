@@ -38,6 +38,7 @@ Wrap your content in the `[paywalled_content]` shortcode to protect it, no codin
 * **[Documentation](https://docs.paybutton.org/)**
 * **[Support](https://t.me/paybutton)**
 * **[Website](https://paybutton.org)**
+* **[Email](mailto:contact@paybutton.org)**
 
 == Frequently Asked Questions ==
 
