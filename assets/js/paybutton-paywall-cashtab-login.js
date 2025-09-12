@@ -46,22 +46,25 @@ function handleLogout() {
  * (5.5 XEC is hard-coded.)
  */
 function renderLoginPaybutton() {
+    // Shared state: login address captured in onSuccess, consumed in onClose.
+    let loginAddr = null;
     PayButton.render(document.getElementById('loginPaybutton'), {
         to: PaywallAjax.defaultAddress,
         amount: 5.5,
         currency: 'XEC',
         text: 'Login via Cashtab',
         hoverText: 'Click to Login',
-        successText: 'Success!',
+        successText: 'Login Successful!',
+        autoClose: true,
         onSuccess: function (tx) {
-            console.log('Login Payment TX:', tx);
-            if (tx && tx.inputAddresses && tx.inputAddresses.length > 0) {
-                const userAddress = tx.inputAddresses[0];
-                // Add a 2500 ms delay before processing the login so that the PB's ding sound dosen't get cutoff.
-                setTimeout(function(){
-                    handleLogin(userAddress);
-                }, 2500);
+            loginAddr = tx?.inputAddresses?.[0] ?? null;
+        },
+        onClose: function () {
+            if (loginAddr) {
+                handleLogin(loginAddr);
             }
+            // Prevent stale reuse on subsequent opens
+            loginAddr = null;
         }
     });
 }
