@@ -45,25 +45,27 @@ function handleLogout() {
  * Render the "Login via Cashtab" PayButton.
  * (5.5 XEC is hard-coded.)
  */
-// Shared state: last successful PayButton tx captured in onSuccess, consumed in onClose.
-let transactionAttrs = null;
 function renderLoginPaybutton() {
+    // Shared state: last successful PayButton tx captured in onSuccess, consumed in onClose.
+    let transactionAttrs = null;
     PayButton.render(document.getElementById('loginPaybutton'), {
         to: PaywallAjax.defaultAddress,
         amount: 5.5,
         currency: 'XEC',
         text: 'Login via Cashtab',
         hoverText: 'Click to Login',
-        successText: 'Success!',
+        successText: 'Login Successful!',
         autoClose: true,
         onSuccess: function (tx) {
-            transactionAttrs = tx;
+            transactionAttrs = { inputAddresses: tx?.inputAddresses ?? [] };
         },
         onClose: function () {
-            if (transactionAttrs && transactionAttrs.inputAddresses && transactionAttrs.inputAddresses.length > 0) {
-                const userAddress = transactionAttrs.inputAddresses[0];
-                handleLogin(userAddress);
+            const addr = transactionAttrs?.inputAddresses?.[0];
+            if (addr) {
+                handleLogin(addr);
             }
+            // Prevent stale reuse on subsequent opens
+            transactionAttrs = null;
         }
     });
 }
