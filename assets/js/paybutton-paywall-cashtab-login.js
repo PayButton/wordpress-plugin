@@ -76,3 +76,22 @@ window.addEventListener('load', function() {
         isLoggedIn = true;
     }
 });
+
+//The following code reloads the page if the user has been idle for more than 10 minutes, to renew the logout button's nonce validity.
+// Track last time the page was active
+let lastActive = Date.now();
+
+// Update timestamp whenever the tab is focused or user interacts
+window.addEventListener('focus', () => {
+    const now = Date.now();
+    const idleMinutes = (now - lastActive) / 60000; // Convert ms to minutes
+    if (idleMinutes > 10) {
+        location.reload(); // Reload if idle for more than 10 minutes to renew the logout button nonce
+    }
+    lastActive = now;
+});
+
+// Also update the timestamp on clicks/scrolls to keep it fresh
+['click','scroll','keydown','mousemove'].forEach(evt => {
+    window.addEventListener(evt, () => { lastActive = Date.now(); });
+});
