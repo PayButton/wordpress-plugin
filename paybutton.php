@@ -46,6 +46,10 @@ register_deactivation_hook( __FILE__, array( 'PayButton_Deactivator', 'deactivat
 
 // Initialize plugin functionality.
 add_action( 'plugins_loaded', function() {
+    // Make sure tables (including any newly added ones) exist after upgrades.
+    if ( class_exists( 'PayButton_Activator' ) ) {
+        PayButton_Activator::create_tables();
+    }
     // Initialize admin functionality if in admin area.
     if ( is_admin() ) {
         new PayButton_Admin();
