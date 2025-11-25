@@ -24,66 +24,57 @@ jQuery(document).ready(function($) {
     $('.paybutton-container').each(function() {
         var $container = $(this);
         var configData = $container.data('config');
+
         if (typeof configData === 'string') {
             try {
                 configData = JSON.parse(configData);
-            } catch(e) {
+            } catch (e) {
                 console.error('Invalid JSON in paybutton-container data-config');
                 return;
             }
         }
-        configData.onSuccess = function(tx) {
-            $.ajax({
+
+        // Shared state: user wallet add + unlock tx captured in onSuccess, consumed in onClose.
+        let unlockAddr = null;
+        let unlockTx   = null;
+
+        // Helper to fetch and inject unlocked content
+        function fetchUnlocked() {
+            jQuery.ajax({
                 method: 'POST',
                 url: PaywallAjax.ajaxUrl,
                 data: {
-                    action: 'mark_payment_successful',
+                    action: 'fetch_unlocked_content',
                     post_id: configData.postId,
-                    security: PaywallAjax.nonce,
-                    tx_hash: tx.hash || '',
-                    tx_amount: tx.amount || '',
-                    tx_timestamp: tx.timestamp || '',
-                    // NEW: Pass the first input address to store in the DB even for non-logged-in users
-                    user_address: (tx.inputAddresses && tx.inputAddresses.length > 0) ? tx.inputAddresses[0] : '',
-                    autoClose: configData.autoClose
+                    security: PaywallAjax.nonce
                 },
-                success: function () {
-                    setTimeout(function () {
-                        jQuery.ajax({
-                            method: 'POST',
-                            url: PaywallAjax.ajaxUrl,
-                            data: {
-                                action: 'fetch_unlocked_content',
-                                post_id: configData.postId,
-                                security: PaywallAjax.nonce
-                            },
-                            success: function (resp) {
-                                if (resp && resp.success) {
-                                    // 1) Replace only the paywalled block content
-                                    var $wrapper = jQuery('#pb-paywall-' + configData.postId);
-                                    if ($wrapper.length && resp.data.unlocked_html) {
-                                        $wrapper.html(resp.data.unlocked_html);
-                                    }
+                success: function (resp) {
+                    if (resp && resp.success) {
+                        var $wrapper = jQuery('#pb-paywall-' + configData.postId);
+                        if ($wrapper.length && resp.data.unlocked_html) {
+                            $wrapper.html(resp.data.unlocked_html);
+                        }
 
-                                    // Optional scroll-to-unlocked-content-indicator + Cache Busting Mechanism
-                                    var baseUrl = location.href.split('#')[0].split('?')[0];
-                                    var newUrl = baseUrl + '?t=' + Date.now() + '#unlocked';
-                                    window.history.replaceState(null, '', newUrl);
+                        // Cache bust + scroll to unlocked content indicator
+                        var baseUrl = location.href.split('#')[0].split('?')[0];
+                        var newUrl = baseUrl + '?t=' + Date.now() + '#unlocked';
+                        window.history.replaceState(null, '', newUrl);
 
-                                    if (PaywallAjax.scrollToUnlocked === '1' || PaywallAjax.scrollToUnlocked === 1) {
-                                        var $target = jQuery('#unlocked');
-                                        if ($target.length) {
-                                            var headerOffset = 80;
-                                            jQuery('html, body').animate({ scrollTop: $target.offset().top - headerOffset }, 500);
-                                        }
-                                    }
-                                }
+                        if (PaywallAjax.scrollToUnlocked === '1' || PaywallAjax.scrollToUnlocked === 1) {
+                            var $target = jQuery('#unlocked');
+                            if ($target.length) {
+                                var headerOffset = 80;
+                                jQuery('html, body').animate({ scrollTop: $target.offset().top - headerOffset }, 500);
                             }
-                        });
-                    }, 20); // Slight delay to ensure DB/cookie update is processed before fetching content
+                        }
+                    }
                 }
             });
-        };
+        }
+
+        // Configure the PayButton like before, but:
+        // - onSuccess only captures tx data
+        // - onClose does the secure validate -> mark_payment_successful -> fetch flow
         PayButton.render($container[0], {
             to: configData.to,
             amount: configData.amount,
@@ -91,10 +82,79 @@ jQuery(document).ready(function($) {
             text: configData.buttonText,
             hoverText: configData.hoverText,
             successText: configData.successText,
-            onSuccess: configData.onSuccess,
             theme: configData.theme,
-            opReturn: configData.opReturn, //This is a hack to give the PB server the post ID to send it back to WP's DB
-            autoClose: configData.autoClose
+            opReturn: configData.opReturn, // carries postID
+            autoClose: configData.autoClose,
+
+            onSuccess: function (tx) {
+                unlockAddr = (tx.inputAddresses && tx.inputAddresses.length > 0)
+                    ? tx.inputAddresses[0]
+                    : '';
+                unlockTx = {
+                    hash: tx.hash || '',
+                    amount: tx.amount || '',
+                    timestamp: tx.timestamp || 0
+                };
+            },
+
+            onClose: function () {
+                if (unlockAddr && unlockTx && unlockTx.hash) {
+                    const addrCopy   = unlockAddr;
+                    const hashCopy   = unlockTx.hash;
+                    const amtCopy    = unlockTx.amount;
+                    const tsCopy     = unlockTx.timestamp;
+                    const postIdCopy = configData.postId;
+
+                    function tryValidateUnlock(attempt) {
+                        jQuery.post(
+                            PaywallAjax.ajaxUrl,
+                            {
+                                action: 'validate_unlock_tx',
+                                security: PaywallAjax.nonce,
+                                wallet_address: addrCopy,
+                                tx_hash: hashCopy,
+                                post_id: postIdCopy
+                            },
+                            function (resp) {
+                                if (resp && resp.success && resp.data && resp.data.unlock_token) {
+                                    // We have a server-issued token – now mark payment as successful.
+                                    jQuery.ajax({
+                                        method: 'POST',
+                                        url: PaywallAjax.ajaxUrl,
+                                        data: {
+                                            action: 'mark_payment_successful',
+                                            post_id: postIdCopy,
+                                            security: PaywallAjax.nonce,
+                                            tx_hash: hashCopy,
+                                            tx_amount: amtCopy,
+                                            tx_timestamp: tsCopy,
+                                            user_address: addrCopy,
+                                            unlock_token: resp.data.unlock_token
+                                        },
+                                        success: function () {
+                                            // Finally, fetch and render the unlocked content
+                                            fetchUnlocked();
+                                        }
+                                    });
+                                } else {
+                                    if (attempt === 1) {
+                                        // Retry once after brief delay
+                                        setTimeout(function () { tryValidateUnlock(2); }, 3000);
+                                    } else {
+                                        alert('⚠️ Payment could not be verified on-chain. Please try again.');
+                                    }
+                                }
+                            }
+                        );
+                    }
+
+                    tryValidateUnlock(1);
+                }
+
+                // Safe to clear shared state (the flow above uses the copies)
+                unlockAddr = null;
+                unlockTx   = null;
+            }
         });
     });
 });
