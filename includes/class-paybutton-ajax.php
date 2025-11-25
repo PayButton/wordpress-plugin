@@ -303,11 +303,6 @@ class PayButton_AJAX {
                 wp_send_json_error( array( 'message' => 'Missing required payment fields.' ), 400 );
         }
 
-        $mysql_timestamp = '0000-00-00 00:00:00';
-        if ( is_numeric( $tx_timestamp ) ) {
-            $mysql_timestamp = gmdate( 'Y-m-d H:i:s', intval( $tx_timestamp ) );
-        }
-
         // Verify that this token corresponds to a row inserted by the signed webhook in Payment_Trigger().
         global $wpdb;
         $table = $wpdb->prefix . 'paybutton_paywall_unlocked';
