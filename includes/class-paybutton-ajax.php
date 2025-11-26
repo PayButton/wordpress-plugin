@@ -149,7 +149,7 @@ class PayButton_AJAX {
                 "SELECT id FROM {$login_table} WHERE wallet_address = %s AND tx_hash = %s LIMIT 1",
                 $user_address, $tx_hash
             ) );
-            error_log('[paybutton] login-branch addr=' . $user_address . ' tx=' . $tx_hash . ' ts=' . $tx_timestamp);
+            //error_log('[paybutton] login-branch addr=' . $user_address . ' tx=' . $tx_hash . ' ts=' . $tx_timestamp);
             if ( ! $exists ) {
                 $wpdb->insert(
                     $login_table,
@@ -164,11 +164,11 @@ class PayButton_AJAX {
                 );
             }
 
-            if ($wpdb->last_error) {
-                error_log('[paybutton] insert error: ' . $wpdb->last_error);
-            } else {
-                error_log('[paybutton] insert ok id=' . $wpdb->insert_id);
-            }
+            // if ($wpdb->last_error) {
+            //     error_log('[paybutton] insert error: ' . $wpdb->last_error);
+            // } else {
+            //     error_log('[paybutton] insert ok id=' . $wpdb->insert_id);
+            // }
 
             wp_send_json_success(['message' => 'Login tx recorded']);
             return;
