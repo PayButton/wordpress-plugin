@@ -171,7 +171,6 @@ class PayButton_AJAX {
             }
 
             wp_send_json_success(['message' => 'Login tx recorded']);
-            global $wpdb;
             return;
         }
         // Convert timestamp to MySQL datetime
