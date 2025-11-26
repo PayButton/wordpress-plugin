@@ -29,18 +29,31 @@ function handleLogin(address, txHash, loginToken) {
 /**
  * Handle user logout.
 */
-function handleLogout() {
+function handleLogout(logoutButton) {
+    if (logoutButton) {
+        // Disable the button and mark as logging out
+        logoutButton.disabled = true;
+        logoutButton.classList.add('is-logging-out');
+    }
+
     jQuery.post(
         PaywallAjax.ajaxUrl,
         {
             action: 'paybutton_logout',
             security: PaywallAjax.nonce
-        },
-        function() {
-            isLoggedIn = false;
-            location.reload();
         }
-    );
+    )
+    .done(function () {
+        isLoggedIn = false;
+        location.reload();
+    })
+    .fail(function () {
+        if (logoutButton) {
+            logoutButton.disabled = false;
+            logoutButton.classList.remove('is-logging-out');
+        }
+        alert('Logout failed. Please try again.');
+    });
 }
 
 /**
