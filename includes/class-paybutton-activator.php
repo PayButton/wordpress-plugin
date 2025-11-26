@@ -42,7 +42,7 @@ class PayButton_Activator {
         // ---- PayButton Paywall Unlocks table ----
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE $table_name (
             id INT NOT NULL AUTO_INCREMENT,
             pb_paywall_user_wallet_address VARCHAR(255) NOT NULL,
             post_id BIGINT(20) UNSIGNED NOT NULL,
@@ -50,9 +50,13 @@ class PayButton_Activator {
             tx_amount DECIMAL(20,2) DEFAULT 0,
             tx_timestamp DATETIME DEFAULT '0000-00-00 00:00:00',
             is_logged_in TINYINT(1) DEFAULT 0,
+            unlock_token VARCHAR(64) DEFAULT '',
+            used TINYINT(1) NOT NULL DEFAULT 0,
             PRIMARY KEY (id),
             KEY pb_paywall_user_wallet_address_idx (pb_paywall_user_wallet_address),
-            KEY post_id_idx (post_id)
+            KEY post_id_idx (post_id),
+            KEY tx_hash_idx (tx_hash),
+            KEY unlock_token_idx (unlock_token)
         ) $charset_collate;";
 
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -61,8 +65,8 @@ class PayButton_Activator {
         // ---- PayButton Logins table ----
         $login_table = $wpdb->prefix . 'paybutton_logins';
 
-        $sql_login = "CREATE TABLE IF NOT EXISTS $login_table (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        $sql_login = "CREATE TABLE $login_table (
+            id INT NOT NULL AUTO_INCREMENT,
             wallet_address VARCHAR(255) NOT NULL,
             tx_hash VARCHAR(64) NOT NULL,
             tx_amount DECIMAL(20,2) NOT NULL,
@@ -70,6 +74,7 @@ class PayButton_Activator {
             login_token VARCHAR(64) DEFAULT '',
             used TINYINT(1) NOT NULL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
             KEY tx_hash_idx (tx_hash),
             KEY wallet_addr_idx (wallet_address(190)),
             KEY used_idx (used),
