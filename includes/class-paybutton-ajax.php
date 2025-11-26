@@ -43,6 +43,13 @@ class PayButton_AJAX {
         add_action( 'wp_ajax_fetch_unlocked_content', array( $this, 'fetch_unlocked_content' ) );
         add_action( 'wp_ajax_nopriv_fetch_unlocked_content', array( $this, 'fetch_unlocked_content' ) );
 
+        // AJAX endpoint to validate a login transaction (marking it as "used" after consumption)
+        add_action('wp_ajax_validate_login_tx', array($this, 'ajax_validate_login_tx'));
+        add_action('wp_ajax_nopriv_validate_login_tx', array($this, 'ajax_validate_login_tx'));
+
+        // AJAX endpoint to validate an unlock transaction
+        add_action('wp_ajax_validate_unlock_tx', array($this, 'ajax_validate_unlock_tx'));
+        add_action('wp_ajax_nopriv_validate_unlock_tx', array($this, 'ajax_validate_unlock_tx'));
     }
     /**
      * Payment Trigger Handler with Cryptographic Verification
@@ -77,6 +84,8 @@ class PayButton_AJAX {
         
         $json = json_decode( $raw_post_data, true );
 
+        // error_log('[paybutton] payment_trigger hit');
+
         if ( ! is_array( $json ) ) {
             wp_send_json_error( array( 'message' => 'Malformed JSON.' ), 400 );
             return;
@@ -88,7 +97,7 @@ class PayButton_AJAX {
         $tx_hash_raw    = $json['tx_hash']                ?? '';
         $tx_amount_raw  = $json['tx_amount']              ?? '';
         $ts_raw         = $json['tx_timestamp']           ?? 0;
-        $user_addr_raw  = $json['user_address'][0]        ?? '';
+        $user_addr_raw = $json['user_address'][0]['address'] ?? ($json['user_address'][0] ?? '');
 
         unset( $json );   // discard the rest immediately
 
@@ -110,6 +119,7 @@ class PayButton_AJAX {
             wp_send_json_error(['message' => 'Signature verification failed.']);
             return;
         }
+        // error_log('[paybutton] signature ok');
 
         //Sanitize data
         $post_id      = intval( $post_id_raw );
@@ -117,7 +127,52 @@ class PayButton_AJAX {
         $tx_amount    = sanitize_text_field( $tx_amount_raw );
         $tx_timestamp = intval( $ts_raw );
         $user_address = sanitize_text_field( $user_addr_raw );
-        
+        // error_log('[paybutton] rawMessage=' . print_r($post_id_raw, true));
+        /**
+         * If PayButton OP_RETURN (carried via post_id.rawMessage) indicates a login flow,
+         * skip unlock logic and just record a login tx row.
+         * This short-circuits the rest of payment_trigger() when it’s a login payment,
+         * so it won’t run the normal unlock write path.
+         * TODO: Rename the post_id field to "opReturn" to avoid confusion.
+        */
+        if ( is_string( $post_id_raw ) && stripos( $post_id_raw, 'login' ) !== false ) {
+            if ( empty( $user_address ) || empty( $tx_hash ) || empty( $tx_timestamp ) ) {
+                wp_send_json_error(['message' => 'Missing login tx fields.'], 400);
+                return;
+            }
+
+            global $wpdb;
+            $login_table = $wpdb->prefix . 'paybutton_logins';
+
+            // Idempotency: avoid dupes on replays
+            $exists = $wpdb->get_var( $wpdb->prepare(
+                "SELECT id FROM {$login_table} WHERE wallet_address = %s AND tx_hash = %s LIMIT 1",
+                $user_address, $tx_hash
+            ) );
+            //error_log('[paybutton] login-branch addr=' . $user_address . ' tx=' . $tx_hash . ' ts=' . $tx_timestamp);
+            if ( ! $exists ) {
+                $wpdb->insert(
+                    $login_table,
+                    array(
+                        'wallet_address' => $user_address,
+                        'tx_hash'        => $tx_hash,
+                        'tx_amount'      => (float) $tx_amount,
+                        'tx_timestamp'   => (int) $tx_timestamp,
+                        'used'           => 0,
+                    ),
+                    array('%s','%s','%f','%d','%d')
+                );
+            }
+
+            // if ($wpdb->last_error) {
+            //     error_log('[paybutton] insert error: ' . $wpdb->last_error);
+            // } else {
+            //     error_log('[paybutton] insert ok id=' . $wpdb->insert_id);
+            // }
+
+            wp_send_json_success(['message' => 'Login tx recorded']);
+            return;
+        }
         // Convert timestamp to MySQL datetime
         $mysql_timestamp = $tx_timestamp ? gmdate('Y-m-d H:i:s', $tx_timestamp) : '0000-00-00 00:00:00';
 
@@ -173,17 +228,35 @@ class PayButton_AJAX {
         }
     }
     /**
-     * The following function saves the 'logged in via PayButton' user's wallet address 
-     * in a variable called pb_paywall_user_wallet_address from the handleLogin() method
-     * of the "paybutton-paywall-cashtab-login.js" file via AJAX.
-     *
-     * This function verifies the AJAX nonce for security,
-     * sanitizes the 'address' field from the POST data, and then stores it in
-     * a cookie (lasting a week).
+     * The following function sets the user's wallet address in a cookie via AJAX after
+     * a successful login transaction.
     */
     public function save_address() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
-        $address = sanitize_text_field( $_POST['address'] );
+        $address = sanitize_text_field( $_POST['address'] ?? '' );
+        $tx_hash = sanitize_text_field( $_POST['tx_hash'] ?? '' );
+        $login_token  = sanitize_text_field( $_POST['login_token'] ?? '' );
+
+        if (!$address || !$tx_hash || !$login_token) {
+            wp_send_json_error(['message' => 'Missing address, tx_hash, or login_token']);
+        }
+
+        // Find the specific validated row for this token + wallet address + tx hash
+        global $wpdb;
+        $login_table = $wpdb->prefix . 'paybutton_logins';
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT id FROM {$login_table}
+            WHERE wallet_address = %s
+            AND tx_hash = %s
+            AND login_token = %s
+            AND used = 1
+            LIMIT 1",
+            $address, $tx_hash, $login_token
+        ));
+
+        if (!$row) {
+            wp_send_json_error(['message' => 'No validated login found for this token']);
+        }
 
         // Retrieve the blacklist and check the address
         $blacklist = get_option( 'paybutton_blacklist', array() );
@@ -193,7 +266,8 @@ class PayButton_AJAX {
         }
         // blacklist End
 
-        PayButton_State::set_address( $address ); wp_send_json_success();
+        PayButton_State::set_address( $address );
+        wp_send_json_success();
     }
 
     /**
@@ -222,40 +296,58 @@ class PayButton_AJAX {
         $tx_timestamp = isset( $_POST['tx_timestamp'] ) ? sanitize_text_field( $_POST['tx_timestamp'] ) : '';
         // NEW: Address passed from front-end if user is not logged in
         $user_address = isset( $_POST['user_address'] ) ? sanitize_text_field( $_POST['user_address'] ) : '';
+        $unlock_token  = isset( $_POST['unlock_token'] ) ? sanitize_text_field( $_POST['unlock_token'] ) : '';
 
-        $mysql_timestamp = '0000-00-00 00:00:00';
-        if ( is_numeric( $tx_timestamp ) ) {
-            $mysql_timestamp = gmdate( 'Y-m-d H:i:s', intval( $tx_timestamp ) );
+        if ( $post_id <= 0 || empty( $tx_hash ) || empty( $user_address ) || empty( $unlock_token ) ) {
+                wp_send_json_error( array( 'message' => 'Missing required payment fields.' ), 400 );
         }
 
-        if ( $post_id > 0 ) {
-            // Mark this post as "unlocked" in the cookie
-            PayButton_State::add_article( $post_id );
+        // Verify that this token corresponds to a row inserted by the signed webhook in Payment_Trigger().
+        global $wpdb;
+        $table = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
-            // Determine if user was "logged in" (i.e., cookie has a stored user wallet address)
-            $is_logged_in = PayButton_State::get_address() ? 1 : 0;
+        $row = $wpdb->get_row( $wpdb->prepare(
+            "SELECT id FROM {$table}
+            WHERE pb_paywall_user_wallet_address = %s
+            AND post_id = %d
+            AND tx_hash = %s
+            AND unlock_token = %s
+            AND used = 1
+            LIMIT 1",
+            $user_address,
+            $post_id,
+            $tx_hash,
+            $unlock_token
+        ) );
 
-            // Decide which address to store:
-            $address_to_store = $is_logged_in ? sanitize_text_field( PayButton_State::get_address() ) : $user_address;
+        if ( ! $row ) {
+            wp_send_json_error( array( 'message' => 'No validated unlock found for this token.' ), 403 );
+        }
 
-            // If we have any address to store, insert a record
-            if ( ! empty( $address_to_store ) ) {
-                // Check blacklist again in case user isn't logged in
-                $blacklist = get_option( 'paybutton_blacklist', array() );
-                if ( in_array( $address_to_store, $blacklist ) ) {
-                    wp_send_json_error( array( 'message' => 'This wallet address is blocked.' ) );
-                    return;
-                }
+        // At this point, we know:
+        // - PayButton webhook inserted the row (signature verified in payment_trigger) in DB
+        // - ajax_validate_unlock_tx() validated it and attached unlock_token
+        // - This mark_payment_successful call has the same addr+tx+post+token
 
-                $this->store_unlock_in_db(
-                    $address_to_store,
-                    $post_id,
-                    $tx_hash,
-                    $tx_amount,
-                    $mysql_timestamp,
-                    $is_logged_in
-                );
-            }
+        // Check blacklist before unlocking
+        $blacklist = get_option( 'paybutton_blacklist', array() );
+        if ( in_array( $user_address, $blacklist, true ) ) {
+            wp_send_json_error( array( 'message' => 'This wallet address is blocked.' ) );
+        }
+
+        // Mark this post as "unlocked" in the cookie for this browser session
+        PayButton_State::add_article( $post_id );
+
+        // If the user is logged in via Cashtab login cookie, mark is_logged_in for this row in DB.
+        $login_addr = sanitize_text_field(PayButton_State::get_address());
+        if ( $login_addr && $login_addr === $user_address ) {
+            $wpdb->update(
+                $table,
+                array( 'is_logged_in' => 1 ),
+                array( 'id' => (int) $row->id ),
+                array( '%d' ),
+                array( '%d' )
+            );
         }
         wp_send_json_success();
     }
@@ -393,5 +485,118 @@ class PayButton_AJAX {
             ),
             array( '%s', '%d', '%s', '%f', '%s', '%d' )
         );
+    }
+
+    /**
+     * AJAX endpoint to validate a login transaction.
+     * This checks that the provided wallet address and tx hash correspond to
+     * an unused login transaction. If valid, it generates and attaches a login token 
+     * and marks the transaction as used to prevent replay.
+    */
+    public function ajax_validate_login_tx() {
+        check_ajax_referer('paybutton_paywall_nonce', 'security');
+
+        $wallet_address = sanitize_text_field($_POST['wallet_address'] ?? '');
+        $tx_hash        = sanitize_text_field($_POST['tx_hash'] ?? '');
+
+        if (empty($wallet_address) || empty($tx_hash)) {
+            wp_send_json_error('Missing data');
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'paybutton_logins';
+
+        // Only accept unused login tx rows
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT id FROM {$table}
+            WHERE wallet_address = %s AND tx_hash = %s AND used = 0
+            ORDER BY id DESC LIMIT 1",
+            $wallet_address, $tx_hash
+        ));
+
+        if (!$row) {
+            wp_send_json_error('Login validation failed'); // no match or already used
+        }
+
+        // Generate a random, unguessable token like "9fx0..._..." so that malicious actors
+        // can't fake login attempts by reusing the same wallet address + tx hash using fake
+        // AJAX calls from the browser.
+        $raw  = random_bytes(18); // 18 bytes → ~24 chars base64url
+        $token = rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
+
+        // Mark as used + attach token
+        $wpdb->update(
+            $table,
+            array(
+                'used'        => 1,
+                'login_token' => $token,
+            ),
+            array('id' => (int)$row->id),
+            array('%d','%s'),
+            array('%d')
+        );
+
+        wp_send_json_success(array(
+            'login_token' => $token,
+        ));
+    }
+
+    /**
+     * AJAX endpoint to validate a content–unlock transaction.
+     * This checks that the provided wallet address + tx hash + post_id
+     * correspond to an unused unlock row created by the signed webhook in payment_trigger().
+     * If valid, it generates a random unlock_token, attaches it, and marks the row used.
+    */
+    public function ajax_validate_unlock_tx() {
+        check_ajax_referer('paybutton_paywall_nonce', 'security');
+
+        $wallet_address = sanitize_text_field($_POST['wallet_address'] ?? '');
+        $tx_hash        = sanitize_text_field($_POST['tx_hash'] ?? '');
+        $post_id        = isset($_POST['post_id']) ? (int) $_POST['post_id'] : 0;
+
+        if (empty($wallet_address) || empty($tx_hash) || $post_id <= 0) {
+            wp_send_json_error('Missing data');
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'paybutton_paywall_unlocked';
+
+        // Only accept unused unlock rows matching this wallet + tx + post
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT id FROM {$table}
+            WHERE pb_paywall_user_wallet_address = %s
+            AND tx_hash = %s
+            AND post_id = %d
+            AND used = 0
+            ORDER BY id DESC
+            LIMIT 1",
+            $wallet_address,
+            $tx_hash,
+            $post_id
+        ));
+
+        if (!$row) {
+            wp_send_json_error('Unlock validation failed'); // no match or already used
+        }
+
+        // Generate a random, unguessable token
+        $raw   = random_bytes(18); // ~24 chars base64url
+        $token = rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
+
+        // Mark row as used + attach unlock token
+        $wpdb->update(
+            $table,
+            array(
+                'used'         => 1,
+                'unlock_token' => $token,
+            ),
+            array( 'id' => (int) $row->id ),
+            array( '%d', '%s' ),
+            array( '%d' )
+        );
+
+        wp_send_json_success(array(
+            'unlock_token' => $token,
+        ));
     }
 }
