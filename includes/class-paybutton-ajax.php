@@ -266,7 +266,7 @@ class PayButton_AJAX {
         }
         // blacklist End
 
-        PayButton_State::set_address( $address ); 
+        PayButton_State::set_address( $address );
         wp_send_json_success();
     }
 
