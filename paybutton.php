@@ -71,3 +71,66 @@ add_action('admin_init', function() {
         }
     }
 });
+
+//Helper Functions
+
+/**
+ * Safely inline an SVG icon from the plugin's assets/icons directory.
+ *
+ * @param string $filename SVG filename without extension.
+ * @return string Sanitized inline SVG or empty string.
+*/
+function paybutton_inline_svg( $filename ) {
+
+    $file = PAYBUTTON_PLUGIN_DIR . "assets/icons/{$filename}.svg";
+
+    if ( ! file_exists( $file ) ) {
+        return '';
+    }
+
+    $svg = file_get_contents( $file );
+
+    // Whitelist for SVG elements used in plugin icons/logos
+$allowed_svg = [
+        'svg' => [
+            'xmlns'             => true,
+            'xmlns:xlink'       => true,
+            'viewbox'           => true,
+            'width'             => true,
+            'height'            => true,
+            'id'                => true,
+            'data-name'         => true,
+            'enable-background' => true,
+            'class'             => true,
+            'fill'              => true,
+            'stroke'            => true,
+            'stroke-width'      => true,
+        ],
+        'g' => [
+            'id'                => true,
+            'class'             => true,
+            'fill'              => true,
+            'stroke'            => true,
+            'stroke-width'      => true,
+            'stroke-linecap'    => true,
+            'stroke-linejoin'   => true,
+        ],
+        'path' => [
+            'id'                => true,
+            'class'             => true,
+            'd'                 => true,
+            'fill'              => true,
+            'stroke'            => true,
+            'stroke-width'      => true,
+            'stroke-linecap'    => true,
+            'stroke-linejoin'   => true,
+            'opacity'           => true,
+            'transform'         => true,
+        ],
+        'title' => [
+            'id'                => true,
+        ],
+    ];
+
+    return wp_kses( $svg, $allowed_svg );
+}
