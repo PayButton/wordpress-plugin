@@ -8,6 +8,34 @@
         // If no valid address is set, do not display the sticky header.
         return;
     }
+
+    $paybutton_svg_allowed = array(
+    'svg' => array(
+        'xmlns'   => true,
+        'viewbox' => true,
+        'viewBox' => true,
+        'width'   => true,
+        'height'  => true,
+        'fill'    => true,
+    ),
+    'path' => array(
+        'd'    => true,
+        'fill' => true,
+    ),
+    'circle' => array(
+        'cx'   => true,
+        'cy'   => true,
+        'r'    => true,
+        'fill' => true,
+    ),
+    'rect' => array(
+        'x'      => true,
+        'y'      => true,
+        'width'  => true,
+        'height' => true,
+        'fill'   => true,
+    ),
+    );
 ?>
 
 <div id="cashtab-sticky-header">
@@ -17,13 +45,23 @@
         <div class="logged-in-actions">
             <button class="profile-button paybutton-animated" onclick="window.location.href='<?php echo esc_url( get_permalink( get_option( 'paybutton_profile_page_id', 0 ) ) ); ?>'">
             <span class="btn-icon">
-                <?php echo paybutton_inline_svg( 'profile' ); ?>
+                <?php
+                    $paybutton_svg_path = PAYBUTTON_PLUGIN_DIR . 'assets/icons/profile.svg';
+                    if (file_exists($paybutton_svg_path)) {
+                        echo wp_kses( file_get_contents( $paybutton_svg_path ), $paybutton_svg_allowed );
+                    }
+                ?>
             </span>
-            <span>Profile</span></button>
+            <span class="btn-text">Profile</span></button>
             <button class="logout-button paybutton-animated" onclick="handleLogout(this)">
-                <span class="btn-icon">
-                    <?php echo paybutton_inline_svg( 'logout' ); ?>
-                </span>
+            <span class="btn-icon">
+                <?php
+                    $paybutton_svg_path = PAYBUTTON_PLUGIN_DIR . 'assets/icons/logout.svg';
+                    if (file_exists($paybutton_svg_path)) {
+                        echo wp_kses( file_get_contents( $paybutton_svg_path ), $paybutton_svg_allowed );
+                    }
+                ?>
+            </span>
                 <!-- Default text -->
                 <span class="btn-text btn-text-default">Logout</span>
                 <!-- "Logging out..." text (hidden until .is-logging-out is added) -->
