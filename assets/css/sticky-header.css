@@ -200,6 +200,8 @@ body {
     margin-right: 6px;
     width: 16px;
     height: 16px;
+    position: relative;
+    z-index: 1;
 }
 
 .paybutton-animated .btn-icon svg {
@@ -210,12 +212,6 @@ body {
 
 /* Ensure text stays above animation layer */
 .paybutton-animated .btn-text {
-    position: relative;
-    z-index: 1;
-}
-
-/* Icon also stays above animation layer */
-.paybutton-animated .btn-icon {
     position: relative;
     z-index: 1;
 }
