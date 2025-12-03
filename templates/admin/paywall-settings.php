@@ -17,8 +17,8 @@
             <tr>
                 <th scope="row"><label for="paybutton_admin_wallet_address">Wallet Address (required)</label></th>
                 <td>
-                    <!-- Using the new $admin_wallet_address variable -->
-                    <input type="text" name="paybutton_admin_wallet_address" id="paybutton_admin_wallet_address" class="regular-text" value="<?php echo esc_attr( $admin_wallet_address ); ?>" required>
+                    <!-- Using the new $paybutton_admin_wallet_address variable -->
+                    <input type="text" name="paybutton_admin_wallet_address" id="paybutton_admin_wallet_address" class="regular-text" value="<?php echo esc_attr( $paybutton_admin_wallet_address ); ?>" required>
                     <!-- This span will be populated by our bundled address validator JS -->
                     <span id="adminAddressValidationResult"></span>
                     <p class="description">Enter your wallet address to receive paywall payments.</p>

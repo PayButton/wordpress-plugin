@@ -204,7 +204,7 @@ class PayButton_Admin {
 
         $args = array(
             'settings_saved'          => $settings_saved,
-            'admin_wallet_address'    => get_option( 'paybutton_admin_wallet_address', '' ),
+            'paybutton_admin_wallet_address'    => get_option( 'paybutton_admin_wallet_address', '' ),
             'default_price'           => get_option( 'paybutton_paywall_default_price', 5.5 ),
             'current_unit'            => get_option( 'paybutton_paywall_unit', 'XEC' ),
             'btn_text'                => get_option( 'paybutton_text', 'Pay to Unlock' ),

@@ -21,38 +21,38 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ( $rows as $row ):
-                        $post_title = get_the_title( $row->post_id );
-                        $permalink  = get_permalink( $row->post_id );
-                        if ( $post_title && $permalink ): ?>
+                    <?php foreach ( $rows as $paybutton_row ):
+                        $paybutton_post_title = get_the_title( $paybutton_row->post_id );
+                        $paybutton_permalink  = get_permalink( $paybutton_row->post_id );
+                        if ( $paybutton_post_title && $paybutton_permalink ): ?>
                             <tr>
                                 <td>
-                                    <a href="<?php echo esc_url( $permalink ); ?>" target="_blank">
-                                        <?php echo esc_html( $post_title ); ?>
+                                    <a href="<?php echo esc_url( $paybutton_permalink ); ?>" target="_blank">
+                                        <?php echo esc_html( $paybutton_post_title ); ?>
                                     </a>
                                 </td>
-                                <td><?php echo number_format( floatval( $row->tx_amount ), 2 ); ?></td>
+                                <td><?php echo number_format( floatval( $paybutton_row->tx_amount ), 2 ); ?></td>
                                 <?php
-                                $converted_ts = '(none)';
-                                if ( ! empty( $row->tx_timestamp ) && $row->tx_timestamp !== '0000-00-00 00:00:00' ) {
-                                    $local_time = get_date_from_gmt( $row->tx_timestamp );
-                                    if ( $local_time ) {
-                                        $converted_ts = date_i18n( 'Y-m-d H:i:s', strtotime( $local_time ) );
+                                $paybutton_converted_ts = '(none)';
+                                if ( ! empty( $paybutton_row->tx_timestamp ) && $paybutton_row->tx_timestamp !== '0000-00-00 00:00:00' ) {
+                                    $paybutton_local_time = get_date_from_gmt( $paybutton_row->tx_timestamp );
+                                    if ( $paybutton_local_time ) {
+                                        $paybutton_converted_ts = date_i18n( 'Y-m-d H:i:s', strtotime( $paybutton_local_time ) );
                                     }
                                 }
                                 ?>
-                                <td><?php echo esc_html( $converted_ts ); ?></td>
-                                <?php if ( ! empty( $row->tx_hash ) ): ?>
+                                <td><?php echo esc_html( $paybutton_converted_ts ); ?></td>
+                                <?php if ( ! empty( $paybutton_row->tx_hash ) ): ?>
                                     <td>
-                                        <a href="https://explorer.e.cash/tx/<?php echo urlencode( $row->tx_hash ); ?>" target="_blank">
-                                            <?php echo esc_html( $row->tx_hash ); ?>
+                                        <a href="https://explorer.e.cash/tx/<?php echo urlencode( $paybutton_row->tx_hash ); ?>" target="_blank">
+                                            <?php echo esc_html( $paybutton_row->tx_hash ); ?>
                                         </a>
                                     </td>
                                 <?php else: ?>
                                     <td>(none)</td>
                                 <?php endif; ?>
                                 <td>
-                                    <?php echo esc_html( $row->is_logged_in ? 'true' : 'false' ); ?>
+                                    <?php echo esc_html( $paybutton_row->is_logged_in ? 'true' : 'false' ); ?>
                                 </td>
                             </tr>
                         <?php endif;
@@ -98,35 +98,35 @@
             </thead>
             <tbody>
                 <?php if ( ! empty( $customers ) ): ?>
-                    <?php foreach ( $customers as $row ): 
-                        $detail_link = add_query_arg( array(
+                    <?php foreach ( $customers as $paybutton_row ): 
+                        $paybutton_detail_link = add_query_arg( array(
                             'page'    => 'paybutton-paywall-customers',
-                            'address' => $row['pb_paywall_user_wallet_address']
+                            'address' => $paybutton_row['pb_paywall_user_wallet_address']
                         ), admin_url( 'admin.php' ) );
                         ?>
                         <tr>
                             <td>
-                                <a href="<?php echo esc_url( $detail_link ); ?>">
-                                    <?php echo esc_html( $row['pb_paywall_user_wallet_address'] ); ?>
+                                <a href="<?php echo esc_url( $paybutton_detail_link ); ?>">
+                                    <?php echo esc_html( $paybutton_row['pb_paywall_user_wallet_address'] ); ?>
                                 </a>
                             </td>
                             <td>
                                 <?php
-                                echo intval( $row['unlocked_count'] )
-                                    //  . ' (' . intval( $row['unlocked_logged_in_count'] ) . ' accounts)'
+                                echo intval( $paybutton_row['unlocked_count'] )
+                                    //  . ' (' . intval( $paybutton_row['unlocked_logged_in_count'] ) . ' accounts)'
                                     ;
                                 ?>
                             </td>
-                            <td><?php echo esc_html( number_format( $row['total_paid'], 2 ) ); ?></td>
+                            <td><?php echo esc_html( number_format( $paybutton_row['total_paid'], 2 ) ); ?></td>
                             <td>
                                 <?php
                                 // Convert MySQL datetime to something friendly
-                                if ( ! empty( $row['last_unlock_ts'] ) && $row['last_unlock_ts'] !== '0000-00-00 00:00:00' ) {
-                                    $local_time = get_date_from_gmt( $row['last_unlock_ts'] );
-                                    if ( $local_time ) {
-                                        echo esc_html( date_i18n( 'Y-m-d H:i:s', strtotime( $local_time ) ) );
+                                if ( ! empty( $paybutton_row['last_unlock_ts'] ) && $paybutton_row['last_unlock_ts'] !== '0000-00-00 00:00:00' ) {
+                                    $paybutton_local_time = get_date_from_gmt( $paybutton_row['last_unlock_ts'] );
+                                    if ( $paybutton_local_time ) {
+                                        echo esc_html( date_i18n( 'Y-m-d H:i:s', strtotime( $paybutton_local_time ) ) );
                                     } else {
-                                        echo esc_html( $row['last_unlock_ts'] ); // fallback
+                                        echo esc_html( $paybutton_row['last_unlock_ts'] ); // fallback
                                     }
                                 } else {
                                     echo '(none)';

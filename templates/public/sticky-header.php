@@ -3,8 +3,8 @@
     if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
     // Check if the admin has set a wallet address
-    $admin_wallet_address = get_option('paybutton_admin_wallet_address', '');
-    if ( empty( $admin_wallet_address ) ) {
+    $paybutton_admin_wallet_address = get_option('paybutton_admin_wallet_address', '');
+    if ( empty( $paybutton_admin_wallet_address ) ) {
         // If no valid address is set, do not display the sticky header.
         return;
     }
@@ -39,7 +39,7 @@
 ?>
 
 <div id="cashtab-sticky-header">
-    <?php if ( ! $user_wallet_address ): ?>
+    <?php if ( ! $paybutton_user_wallet_address ): ?>
         <div id="loginPaybutton"></div>
     <?php else: ?>
         <div class="logged-in-actions">
