@@ -397,7 +397,7 @@ class PayButton_AJAX {
         }
 
         // Run the full post-content pipeline (blocks, shortcodes, embeds, autop, etc.) filter
-        $body = apply_filters( 'the_content', $inner );
+        $body = apply_filters( 'the_content', $inner ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core hook
 
         // Restore the flag
         if ( isset( $wp_query ) ) {

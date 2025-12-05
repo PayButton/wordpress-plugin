@@ -163,9 +163,9 @@ class PayButton_Public {
      * Output the sticky header HTML.
      */
     public function output_sticky_header() {
-        $user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
+        $paybutton_user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
         $this->load_public_template( 'sticky-header', array(
-            'user_wallet_address' => $user_wallet_address
+            'paybutton_user_wallet_address' => $paybutton_user_wallet_address
         ) );
     }
 
@@ -280,20 +280,20 @@ class PayButton_Public {
      * @return string
      */
     public function profile_shortcode() {
-        $user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
-        if ( empty( $user_wallet_address ) ) {
+        $paybutton_user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
+        if ( empty( $paybutton_user_wallet_address ) ) {
             return '<p>You must be logged in to view your unlocked content.</p>';
         }
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
-        $rows       = $wpdb->get_results( $wpdb->prepare(
+        $paybutton_rows       = $wpdb->get_results( $wpdb->prepare(
             "SELECT DISTINCT post_id FROM $table_name WHERE pb_paywall_user_wallet_address = %s ORDER BY id DESC",
-            $user_wallet_address
+            $paybutton_user_wallet_address
         ) );
         ob_start();
         $this->load_public_template( 'profile', array(
-            'user_wallet_address' => $user_wallet_address,
-            'rows'                => $rows
+            'paybutton_user_wallet_address' => $paybutton_user_wallet_address,
+            'paybutton_rows'                => $paybutton_rows
         ) );
         return ob_get_clean();
     }

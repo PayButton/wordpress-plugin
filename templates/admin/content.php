@@ -37,23 +37,21 @@
         </thead>
         <tbody>
             <?php if ( ! empty( $contentData ) ): ?>
-                <?php foreach ( $contentData as $row ): 
-                    $permalink = get_permalink( $row['post_id'] );
+                <?php foreach ( $contentData as $paybutton_row ): 
+                    $paybutton_permalink = get_permalink( $paybutton_row['post_id'] );
                     ?>
                     <tr>
                         <td>
-                            <a href="<?php echo esc_url( $permalink ); ?>" target="_blank">
-                                <?php echo esc_html( $row['title'] ); ?>
+                            <a href="<?php echo esc_url( $paybutton_permalink ); ?>" target="_blank">
+                                <?php echo esc_html( $paybutton_row['title'] ); ?>
                             </a>
                         </td>
                         <td>
                             <?php
-                            echo intval( $row['unlock_count'] )
-                                //  . ' (' . intval( $row['unlock_logged_in_count'] ) . ' accounts)'
-                                ;
+                            echo intval( $paybutton_row['unlock_count'] );
                             ?>
                         </td>
-                        <td><?php echo esc_html( number_format( $row['total_earned'], 2 ) ); ?></td>
+                        <td><?php echo esc_html( number_format( $paybutton_row['total_earned'], 2 ) ); ?></td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>

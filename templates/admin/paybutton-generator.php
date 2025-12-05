@@ -3,7 +3,7 @@
     if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
     
     //Get admin's wallet address from paywall settings
-    $admin_address = get_option( 'paybutton_admin_wallet_address', '' );
+    $paybutton_admin_wallet_address = get_option( 'paybutton_admin_wallet_address', '' );
 ?>
 
 <div class="wrap">
@@ -22,7 +22,7 @@
         type="text" 
         id="pbGenTo" 
         placeholder="Your Wallet Address (XEC or BCH)"
-        value="<?php echo esc_attr( $admin_address ); ?>"
+        value="<?php echo esc_attr( $paybutton_admin_wallet_address ); ?>"
         class="pb-generator-input"
       >
 
