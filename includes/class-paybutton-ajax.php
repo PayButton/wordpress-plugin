@@ -614,22 +614,22 @@ class PayButton_AJAX {
      * AJAX endpoint to get sticky header HTML for auto-login after content unlock.
     */
     public function get_sticky_header() {
-    check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
+        check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
 
-    $template = PAYBUTTON_PLUGIN_DIR . 'templates/public/sticky-header.php';
-    if ( ! file_exists( $template ) ) {
-        wp_send_json_error( array( 'message' => 'Sticky header template not found.' ), 500 );
-    }
+        $template = PAYBUTTON_PLUGIN_DIR . 'templates/public/sticky-header.php';
+        if ( ! file_exists( $template ) ) {
+            wp_send_json_error( array( 'message' => 'Sticky header template not found.' ), 500 );
+        }
 
-    // IMPORTANT: use the same name as in output_sticky_header() and sticky-header.php
-    $paybutton_user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
+        // IMPORTANT: use the same name as in output_sticky_header() and sticky-header.php
+        $paybutton_user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
 
-    ob_start();
-    include $template;
-    $html = ob_get_clean();
+        ob_start();
+        include $template;
+        $html = ob_get_clean();
 
-    wp_send_json_success( array(
-        'html' => $html,
-    ) );
+        wp_send_json_success( array(
+            'html' => $html,
+        ) );
     }
 }
