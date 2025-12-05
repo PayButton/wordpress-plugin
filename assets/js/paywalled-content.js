@@ -67,6 +67,28 @@ jQuery(document).ready(function($) {
                                 jQuery('html, body').animate({ scrollTop: $target.offset().top - headerOffset }, 500);
                             }
                         }
+                        // --- NEW: update sticky header to the logged-in state without reload ---
+                        // Keep JS state in sync (used by login script)
+                        if (typeof isLoggedIn !== 'undefined') {
+                            isLoggedIn = true;
+                        }
+
+                        jQuery.post(
+                            PaywallAjax.ajaxUrl,
+                            {
+                                action: 'paybutton_get_sticky_header',
+                                security: PaywallAjax.nonce
+                            },
+                            function(resp) {
+                                if (resp && resp.success && resp.data && resp.data.html) {
+                                    var $header = jQuery('#cashtab-sticky-header');
+                                    if ($header.length) {
+                                        // Replace the whole header with the freshly rendered one
+                                        $header.replaceWith(resp.data.html);
+                                    }
+                                }
+                            }
+                        );
                     }
                 }
             });

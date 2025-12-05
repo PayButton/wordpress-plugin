@@ -50,6 +50,10 @@ class PayButton_AJAX {
         // AJAX endpoint to validate an unlock transaction
         add_action('wp_ajax_validate_unlock_tx', array($this, 'ajax_validate_unlock_tx'));
         add_action('wp_ajax_nopriv_validate_unlock_tx', array($this, 'ajax_validate_unlock_tx'));
+
+        // AJAX endpoint to get sticky header HTML for auto-login after content unlock
+        add_action( 'wp_ajax_paybutton_get_sticky_header', array( $this, 'get_sticky_header' ) );
+        add_action( 'wp_ajax_nopriv_paybutton_get_sticky_header', array( $this, 'get_sticky_header' ) );
     }
     /**
      * Payment Trigger Handler with Cryptographic Verification
@@ -307,7 +311,7 @@ class PayButton_AJAX {
         $table = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
         $row = $wpdb->get_row( $wpdb->prepare(
-            "SELECT id FROM {$table}
+            "SELECT id, pb_paywall_user_wallet_address FROM {$table}
             WHERE pb_paywall_user_wallet_address = %s
             AND post_id = %d
             AND tx_hash = %s
@@ -337,6 +341,12 @@ class PayButton_AJAX {
 
         // Mark this post as "unlocked" in the cookie for this browser session
         PayButton_State::add_article( $post_id );
+
+        $wallet_address = sanitize_text_field($row->pb_paywall_user_wallet_address);
+        // 🔐 Auto-login from wallet address returned in the server-verified row
+        if ( ! PayButton_State::get_address() && ! empty( $wallet_address ) ) {
+            PayButton_State::set_address( $wallet_address );
+        }
 
         // If the user is logged in via Cashtab login cookie, mark is_logged_in for this row in DB.
         $login_addr = sanitize_text_field(PayButton_State::get_address());
@@ -598,5 +608,28 @@ class PayButton_AJAX {
         wp_send_json_success(array(
             'unlock_token' => $token,
         ));
+    }
+
+    /** 
+     * AJAX endpoint to get sticky header HTML for auto-login after content unlock.
+    */
+    public function get_sticky_header() {
+        check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
+
+        $template = PAYBUTTON_PLUGIN_DIR . 'templates/public/sticky-header.php';
+        if ( ! file_exists( $template ) ) {
+            wp_send_json_error( array( 'message' => 'Sticky header template not found.' ), 500 );
+        }
+
+        // IMPORTANT: use the same name as in output_sticky_header() and sticky-header.php
+        $paybutton_user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
+
+        ob_start();
+        include $template;
+        $html = ob_get_clean();
+
+        wp_send_json_success( array(
+            'html' => $html,
+        ) );
     }
 }
