@@ -169,7 +169,7 @@ jQuery(document).ready(function($) {
                                     else if(attempt === 3) {
                                         // Retry after brief delay
                                         setTimeout(function () { tryValidateUnlock(4); }, 1000); // 1s delay to give the PayButton webhook time
-                                        console.log('Retrying unlock validation (attempt 4 Last one)...');
+                                        console.log('Retrying unlock validation (attempt 4)...');
                                     }
                                     else if (attempt === 4) {
                                         // Worst case, one final retry after a longer delay
