@@ -14,7 +14,7 @@ class PayButton_Admin {
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'add_admin_menus' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-        add_action( 'admin_notices', array( $this, 'admin_notice_missing_wallet_address' ) );
+        add_action( 'admin_notices', array( $this, 'admin_notice_missing_required_inputs' ) );
         // Process form submissions early
         add_action( 'admin_init', array( $this, 'handle_save_settings' ) );
 
@@ -228,7 +228,7 @@ class PayButton_Admin {
         $this->load_admin_template( 'paywall-settings', $args );
     }
 
-    public function admin_notice_missing_wallet_address() {
+    public function admin_notice_missing_required_inputs() {
         if (isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true') {
             return;
         }        
@@ -240,6 +240,13 @@ class PayButton_Admin {
         if (empty($address)) {
             echo '<div class="notice notice-error">';
             echo '<p><strong>NOTICE:</strong> Please set your wallet address in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>. If you don\'t have an address yet, create a wallet using <a href="https://cashtab.com" target="_blank">Cashtab</a>, <a href="https://www.bitcoinabc.org/electrum/" target="_blank">Electrum ABC</a> or <a href="https://electroncash.org/" target="_blank">Electron Cash</a>.</p>';
+            echo '</div>';
+        }
+
+        $public_key = get_option('paybutton_public_key', '');
+        if (empty($public_key)) {
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>NOTICE:</strong> Please set your public key in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>.</p>';
             echo '</div>';
         }
     }
