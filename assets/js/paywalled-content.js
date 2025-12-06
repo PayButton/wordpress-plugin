@@ -125,7 +125,17 @@ jQuery(document).ready(function($) {
                     const postIdCopy = configData.postId;
 
                     function tryValidateUnlock(attempt) {
-                        console.log('Unlock validation attempt ' + attempt + (attempt === 5 ? ' (final)' : '') + '...');
+                        const maxAttempts  = 4;      // total attempts
+                        const baseDelayMs  = 1000;   // 1.0s
+                        const stepDelayMs  = 500;    // +0.5s per retry
+
+                        // console.log(
+                        //     'Unlock validation attempt ' +
+                        //     attempt +
+                        //     (attempt === maxAttempts ? ' (final)' : '') +
+                        //     '...'
+                        // );
+
                         jQuery.post(
                             PaywallAjax.ajaxUrl,
                             {
@@ -157,23 +167,16 @@ jQuery(document).ready(function($) {
                                         }
                                     });
                                 } else {
-                                    if (attempt === 1) {
-                                        // Retry after brief delay
-                                        setTimeout(function () { tryValidateUnlock(2); }, 1200); // 1.2s delay to give the PayButton webhook time
-                                    }
-                                    else if(attempt === 2) {
-                                        // Retry after brief delay
-                                        setTimeout(function () { tryValidateUnlock(3); }, 1000); // 1s delay to give the PayButton webhook time
-                                    }
-                                    else if(attempt === 3) {
-                                        // Retry after brief delay
-                                        setTimeout(function () { tryValidateUnlock(4); }, 1000); // 1s delay to give the PayButton webhook time
-                                    }
-                                    else if (attempt === 4) {
-                                        // Worst case, one final retry after a longer delay
-                                        setTimeout(function () { tryValidateUnlock(5); }, 2000); // 2s delay to give the PayButton webhook time
-                                    }
-                                    else {
+                                    if (attempt < maxAttempts) {
+                                        // Retry after brief delay with incremental backoff:
+                                        // 1s, 1.5s, 2s, 2.5s
+                                        const nextAttempt = attempt + 1;
+                                        const nextDelay   = baseDelayMs + (nextAttempt - 1) * stepDelayMs;
+
+                                        setTimeout(function () {
+                                            tryValidateUnlock(nextAttempt);
+                                        }, nextDelay);
+                                    } else {
                                         alert('⚠️ Payment could not be verified on-chain. Please try again.');
                                     }
                                 }
