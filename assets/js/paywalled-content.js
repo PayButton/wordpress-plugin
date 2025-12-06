@@ -129,13 +129,6 @@ jQuery(document).ready(function($) {
                         const baseDelayMs  = 1000;   // 1.0s
                         const stepDelayMs  = 500;    // +0.5s per retry
 
-                        // console.log(
-                        //     'Unlock validation attempt ' +
-                        //     attempt +
-                        //     (attempt === maxAttempts ? ' (final)' : '') +
-                        //     '...'
-                        // );
-
                         jQuery.post(
                             PaywallAjax.ajaxUrl,
                             {
