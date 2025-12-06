@@ -125,6 +125,7 @@ jQuery(document).ready(function($) {
                     const postIdCopy = configData.postId;
 
                     function tryValidateUnlock(attempt) {
+                        console.log('Unlock validation attempt ' + attempt + (attempt === 5 ? ' (final)' : '') + '...');
                         jQuery.post(
                             PaywallAjax.ajaxUrl,
                             {
@@ -159,22 +160,19 @@ jQuery(document).ready(function($) {
                                     if (attempt === 1) {
                                         // Retry after brief delay
                                         setTimeout(function () { tryValidateUnlock(2); }, 1200); // 1.2s delay to give the PayButton webhook time
-                                        console.log('Retrying unlock validation (attempt 2)...');
                                     }
                                     else if(attempt === 2) {
                                         // Retry after brief delay
                                         setTimeout(function () { tryValidateUnlock(3); }, 1000); // 1s delay to give the PayButton webhook time
-                                        console.log('Retrying unlock validation (attempt 3)...');
                                     }
                                     else if(attempt === 3) {
                                         // Retry after brief delay
                                         setTimeout(function () { tryValidateUnlock(4); }, 1000); // 1s delay to give the PayButton webhook time
-                                        console.log('Retrying unlock validation (attempt 4)...');
                                     }
                                     else if (attempt === 4) {
                                         // Worst case, one final retry after a longer delay
                                         setTimeout(function () { tryValidateUnlock(5); }, 2000); // 2s delay to give the PayButton webhook time
-                                        console.log('Retrying unlock validation (attempt 5 - Final attempt)...');
+                                        console.log('Retrying unlock validation (attempt 5 Last one)...');
                                     }
                                     else {
                                         alert('⚠️ Payment could not be verified on-chain. Please try again.');
@@ -187,7 +185,6 @@ jQuery(document).ready(function($) {
                     // Initial delay before first attempt to give the PayButton webhook time
                     setTimeout(function () {
                         tryValidateUnlock(1);
-                        console.log('Attempting unlock validation (attempt 1)...');
                     }, 1000); // First attempt, 1s delay (selected experimentally)
                 }
 
