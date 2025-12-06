@@ -172,7 +172,6 @@ jQuery(document).ready(function($) {
                                     else if (attempt === 4) {
                                         // Worst case, one final retry after a longer delay
                                         setTimeout(function () { tryValidateUnlock(5); }, 2000); // 2s delay to give the PayButton webhook time
-                                        console.log('Retrying unlock validation (attempt 5 Last one)...');
                                     }
                                     else {
                                         alert('⚠️ Payment could not be verified on-chain. Please try again.');
