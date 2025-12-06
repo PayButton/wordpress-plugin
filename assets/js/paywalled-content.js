@@ -95,8 +95,7 @@ jQuery(document).ready(function($) {
         }
 
         // Configure the PayButton like before, but:
-        // - onSuccess only captures tx data
-        // - onClose does the secure validate -> mark_payment_successful -> fetch flow
+        // - onSuccess captures tx data and does the secure validate -> mark_payment_successful -> fetch flow
         PayButton.render($container[0], {
             to: configData.to,
             amount: configData.amount,
@@ -117,9 +116,7 @@ jQuery(document).ready(function($) {
                     amount: tx.amount || '',
                     timestamp: tx.timestamp || 0
                 };
-            },
 
-            onClose: function () {
                 if (unlockAddr && unlockTx && unlockTx.hash) {
                     const addrCopy   = unlockAddr;
                     const hashCopy   = unlockTx.hash;
@@ -160,9 +157,26 @@ jQuery(document).ready(function($) {
                                     });
                                 } else {
                                     if (attempt === 1) {
-                                        // Retry once after brief delay
-                                        setTimeout(function () { tryValidateUnlock(2); }, 3000);
-                                    } else {
+                                        // Retry after brief delay
+                                        setTimeout(function () { tryValidateUnlock(2); }, 1200); // 1.2s delay to give the PayButton webhook time
+                                        console.log('Retrying unlock validation (attempt 2)...');
+                                    }
+                                    else if(attempt === 2) {
+                                        // Retry after brief delay
+                                        setTimeout(function () { tryValidateUnlock(3); }, 1000); // 1s delay to give the PayButton webhook time
+                                        console.log('Retrying unlock validation (attempt 3)...');
+                                    }
+                                    else if(attempt === 3) {
+                                        // Retry after brief delay
+                                        setTimeout(function () { tryValidateUnlock(4); }, 1000); // 1s delay to give the PayButton webhook time
+                                        console.log('Retrying unlock validation (attempt 4 Last one)...');
+                                    }
+                                    else if (attempt === 4) {
+                                        // Worst case, one final retry after a longer delay
+                                        setTimeout(function () { tryValidateUnlock(5); }, 2000); // 2s delay to give the PayButton webhook time
+                                        console.log('Retrying unlock validation (attempt 5 Last one)...');
+                                    }
+                                    else {
                                         alert('⚠️ Payment could not be verified on-chain. Please try again.');
                                     }
                                 }
@@ -170,13 +184,17 @@ jQuery(document).ready(function($) {
                         );
                     }
 
-                    tryValidateUnlock(1);
+                    // Initial delay before first attempt to give the PayButton webhook time
+                    setTimeout(function () {
+                        tryValidateUnlock(1);
+                        console.log('Attempting unlock validation (attempt 1)...');
+                    }, 1000); // First attempt, 1s delay (selected experimentally)
                 }
 
                 // Safe to clear shared state (the flow above uses the copies)
                 unlockAddr = null;
                 unlockTx   = null;
-            }
+            },
         });
     });
 });
