@@ -120,7 +120,7 @@ function renderLoginPaybutton() {
     });
 }
 
-window.addEventListener('load', function() {
+jQuery(function ($) {
     if (!parseInt(PaywallAjax.isUserLoggedIn)) {
         renderLoginPaybutton();
     } else {

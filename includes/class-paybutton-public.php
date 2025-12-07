@@ -25,7 +25,7 @@ class PayButton_Public {
 
     public function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_public_assets' ) );
-        add_action( 'wp_body_open', array( $this, 'output_sticky_header' ) );
+        add_action( 'wp_body_open', array( $this, 'output_sticky_header' ), 5 );
         add_shortcode( 'paywalled_content', array( $this, 'paybutton_paywall_shortcode' ) );
         add_shortcode( 'paybutton_profile', array( $this, 'profile_shortcode' ) );
         add_shortcode( 'paybutton', [ $this, 'paybutton_generator_shortcode' ] );
