@@ -296,3 +296,16 @@ table.widefat.fixed.striped td {
   text-align: center;
   font-weight:bold;
 }
+
+.pre-box {
+    background: #eaeaea;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.paybutton-guide {
+    margin-top: 15px;
+    background: #f7f7f7;
+    padding: 15px;
+    border-left: 4px solid #0073aa;
+}

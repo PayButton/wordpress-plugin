@@ -183,6 +183,29 @@
             <tr>
                 <th colspan="2"><h2>Advanced Settings</h2></th>
             </tr>
+            <!-- Login & Content Unlock Cookie Expiry Setting -->
+            <tr>
+                <th scope="row">
+                    <label for="paybutton_cookie_ttl_days">
+                        Login &amp; Content Unlock Cookie Expiry (optional)
+                    </label>
+                </th>
+                <td>
+                    <input
+                        type="number"
+                        name="paybutton_cookie_ttl_days"
+                        id="paybutton_cookie_ttl_days"
+                        class="regular-text"
+                        min="0"
+                        step="1"
+                        value="<?php echo esc_attr( (int) $paybutton_cookie_ttl_days ); ?>"
+                    />
+                    <p class="description">
+                        Controls how long login <code>paybutton_user_wallet_address</code> and unlocked content <code>paybutton_paid_content</code> cookies stay valid, in days.
+                        </br>Use <strong>0</strong> (default) to keep users logged in indefinitely.
+                    </p>
+                </td>
+            </tr>
             <!--blacklist Field -->
             <tr>
                 <th scope="row"><label for="paybutton_blacklist">Blacklisted Addresses (optional)</label></th>
@@ -205,7 +228,7 @@
                         Enter your PayButton public key to verify Payment Trigger requests.
                     </p>
                     <!-- User-Friendly Setup Guide -->
-                    <div class="paybutton-guide" style="margin-top: 15px; background: #f7f7f7; padding: 15px; border-left: 4px solid #0073aa;">
+                    <div class="paybutton-guide">
                         <p><strong>Guide to Setup your PayButton Public Key:</strong></p>
                         <p>
                             1. Create an account on 
@@ -222,11 +245,11 @@
                         <p>
                             4. In the <em>URL</em> field, paste the following:
                         </p>
-                        <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;"><?php echo esc_url( admin_url( 'admin-ajax.php?action=payment_trigger' ) ); ?></pre>
+                        <pre class="pre-box"><?php echo esc_url( admin_url( 'admin-ajax.php?action=payment_trigger' ) ); ?></pre>
                         <p>
                             5. In the <em>Post Data</em> field, paste the following code as is:
                         </p>
-                        <pre style="background: #eaeaea; padding: 10px; border: 1px solid #ddd;">
+                        <pre class="pre-box">
 {
 "signature": &lt;signature&gt;,
 "post_id": &lt;opReturn&gt;,
