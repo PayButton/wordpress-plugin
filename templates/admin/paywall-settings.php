@@ -220,10 +220,10 @@
             <!--NEW Public Key input field-->
             <tr>
                 <th scope="row">
-                    <label for="paybutton_public_key">PayButton Public Key (optional)</label>
+                    <label for="paybutton_public_key">PayButton Public Key (required)</label>
                 </th>
                 <td>
-                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" value="<?php echo esc_attr( $paybutton_public_key ); ?>">
+                    <input type="text" name="paybutton_public_key" id="paybutton_public_key" class="regular-text" value="<?php echo esc_attr( $paybutton_public_key ); ?>" required>
                     <p class="description">
                         Enter your PayButton public key to verify Payment Trigger requests.
                     </p>
@@ -262,7 +262,7 @@
                                 6. Save your button settings after pasting these values, and you're all set!
                             </p>
                             <p>
-                                <strong>Note:</strong> Enabling this feature is strongly recommended as it improves payment reliability, leveraging secure server-to-server messaging to record paywall transactions to your database.
+                                <strong>Note:</strong> Enabling this feature is required as it improves payment reliability, leveraging secure server-to-server messaging to record paywall and login transactions to your database.
                             </p>
                     </div>
                 </td>
