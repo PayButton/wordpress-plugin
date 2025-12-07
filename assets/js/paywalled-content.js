@@ -34,7 +34,7 @@ jQuery(document).ready(function($) {
             }
         }
 
-        // Shared state: user wallet address + unlock tx captured in onSuccess, consumed in onClose.
+        // Shared state: user wallet address + unlock tx captured in onSuccess.
         let unlockAddr = null;
         let unlockTx   = null;
 
