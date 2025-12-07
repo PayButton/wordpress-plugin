@@ -202,7 +202,7 @@
                     />
                     <p class="description">
                         Controls how long login <code>paybutton_user_wallet_address</code> and unlocked content <code>paybutton_paid_content</code> cookies stay valid, in days.
-                        </br>Use <strong>0</strong> (default) to keep users logged in indefinitely.
+                        <br />Use <strong>0</strong> (default) to keep users logged in indefinitely.
                     </p>
                 </td>
             </tr>
