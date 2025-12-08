@@ -85,6 +85,7 @@ The integration uses the SideShift API to enable the button or widget to accept 
 * Refined sticky header button UI and UX.
 * Implemented server-verified login tokens for secure content unlocking and Cashtab login.
 * Upgraded the PayButton dependency to v5.2.0.
+* Updated plugin compatibility to WordPress 6.9
 
 = 4.0.0 (2025/09/07) =
 * Added support for no-reload content unlocks.
