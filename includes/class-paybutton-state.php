@@ -4,11 +4,40 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 final class PayButton_State {
 
     /**
-     * cookie names & session-only cookies 
+     * cookie names
     */
     const COOKIE_USER_ADDR = 'paybutton_user_wallet_address';
     const COOKIE_CONTENT  = 'paybutton_paid_content';
-    const TTL         = 604800; // one week
+    
+    /**
+     * Default cookie lifetime in seconds.
+     * Used when the admin has not set a specific expiry.
+     * Modern browsers may impose their own limits on cookie lifetimes often around 400 days.
+     * https://httpwg.org/http-extensions/draft-ietf-httpbis-rfc6265bis.html#name-the-expires-attribute
+    */
+    const TTL = 31536000; // 1 year in seconds.
+
+    /**
+     * Get effective cookie TTL (in seconds) based on settings.
+     * - If "Login & Content Unlock Cookie Expiry (days)" is > 0,
+     *   use that value.
+     * - If 0 or empty, fall back to the unlimited default (self::TTL).
+     * @return int TTL in seconds
+    */
+    private static function get_ttl() {
+        $raw_days = get_option( 'paybutton_cookie_ttl_days', 0 );
+        $days     = (int) $raw_days;
+
+        if ( $days > 0 ) {
+            if ( defined( 'DAY_IN_SECONDS' ) ) {
+                return $days * DAY_IN_SECONDS;
+            }
+
+            return $days * 86400;
+        }
+
+        return self::TTL;
+    }
 
     /**
      * Generate HMAC of a value using WP auth salt.
@@ -103,12 +132,14 @@ final class PayButton_State {
             return;   // nothing new → don’t send a Set-Cookie header, good for caching
         }
 
+        $ttl = self::get_ttl();
+
         if ( PHP_VERSION_ID >= 70300 ) {
             setcookie(
                 self::COOKIE_USER_ADDR,
                 $cookieValue,
                 [
-                    'expires'  => time() + self::TTL,
+                    'expires'  => time() + $ttl,
                     'path'     => '/',
                     'domain'   => COOKIE_DOMAIN ?: '',
                     'secure'   => is_ssl(),
@@ -118,7 +149,7 @@ final class PayButton_State {
             );
         } else {
             //Fall back to a raw header with SameSite=Lax for older PHP versions
-            $expiry = gmdate( 'D, d-M-Y H:i:s T', time() + self::TTL );
+            $expiry = gmdate( 'D, d-M-Y H:i:s T', time() + $ttl );
             $header = sprintf(
                 '%s=%s; Expires=%s; Path=%s; Domain=%s; %s; HttpOnly; SameSite=Lax',
                 self::COOKIE_USER_ADDR,
@@ -196,12 +227,14 @@ final class PayButton_State {
             return; // nothing new → don’t send a Set-Cookie header, good for caching
         }
         
+        $ttl = self::get_ttl();
+
         if ( PHP_VERSION_ID >= 70300 ) {
             setcookie(
                 self::COOKIE_CONTENT,
                 $cookieValue,
                 [
-                    'expires'  => time() + self::TTL,
+                    'expires'  => time() + $ttl,
                     'path'     => '/',
                     'domain'   => COOKIE_DOMAIN ?: '',
                     'secure'   => is_ssl(),
@@ -211,7 +244,7 @@ final class PayButton_State {
             );
         } else {
             //Fall back to a raw header with SameSite=Lax for older PHP versions
-            $expiry = gmdate( 'D, d-M-Y H:i:s T', time() + self::TTL );
+            $expiry = gmdate( 'D, d-M-Y H:i:s T', time() + $ttl );
             $header = sprintf(
                 '%s=%s; Expires=%s; Path=%s; Domain=%s; %s; HttpOnly; SameSite=Lax',
                 self::COOKIE_CONTENT,

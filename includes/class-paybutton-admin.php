@@ -224,6 +224,8 @@ class PayButton_Admin {
             'blacklist'                 => get_option( 'paybutton_blacklist', array() ),
             //Public key
             'paybutton_public_key'      => get_option( 'paybutton_public_key', '' ),
+            // Login & content unlock cookie expiry (days)
+            'paybutton_cookie_ttl_days' => get_option( 'paybutton_cookie_ttl_days', 0 ),
         );
         $this->load_admin_template( 'paywall-settings', $args );
     }
@@ -253,7 +255,7 @@ class PayButton_Admin {
 
     /**
      * Save settings submitted via the Paywall Settings page.
-     */
+    */
     private function save_settings() {
         $address         = sanitize_text_field( $_POST['paybutton_admin_wallet_address'] );
         $unit            = sanitize_text_field( $_POST['unit'] );
@@ -291,6 +293,22 @@ class PayButton_Admin {
         update_option( 'paybutton_scroll_to_unlocked', isset( $_POST['paybutton_scroll_to_unlocked'] ) ? '1' : '0' );
         // Default to  #000000 for text
         update_option('paybutton_unlocked_indicator_color', $paybutton_unlocked_indicator_color ?: '#000000');
+
+        // NEW Login & Content Unlock Cookie Expiry (days)
+        // 0 means "no automatic logout" (use long default TTL set in PayButton_State class)
+        $paybutton_cookie_ttl_days = 0;
+
+        if ( isset( $_POST['paybutton_cookie_ttl_days'] ) ) {
+            $raw_ttl = wp_unslash( $_POST['paybutton_cookie_ttl_days'] );
+            // sanitize_text_field to strip tags etc, then cast to int
+            $sanitized_ttl = sanitize_text_field( $raw_ttl );
+            $paybutton_cookie_ttl_days = (int) $sanitized_ttl;
+
+            if ( $paybutton_cookie_ttl_days < 0 ) {
+                $paybutton_cookie_ttl_days = 0;
+            }
+        }
+        update_option( 'paybutton_cookie_ttl_days', $paybutton_cookie_ttl_days );
 
         // Save the blacklist
         if ( isset( $_POST['paybutton_blacklist'] ) ) {
