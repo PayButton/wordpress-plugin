@@ -3,10 +3,10 @@ Contributors: xecdev, klakurka
 Donate link: https://donate.paybutton.org/
 Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.0
-Stable tag: 4.0.0
-PayButton Client: 5.0.2
+Stable tag: 5.0.0
+PayButton Client: 5.2.0
 PayButton Client URI: https://github.com/PayButton/paybutton
 License: MIT
 License URI: https://github.com/PayButton/wordpress-plugin/blob/master/LICENSE
@@ -75,6 +75,18 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Changelog ==
 
+= 5.0.0 (2025/12/08) =
+* Added configurable cookie TTL with support for unlimited sessions by default.
+* Optimized Sticky Header initialization for faster rendering.
+* Enforced mandatory Public Key input.
+* Reduced content unlock latency.
+* Enabled automatic login immediately after content unlock.
+* Prefixed global variables.
+* Refined sticky header button UI and UX.
+* Implemented server-verified login tokens for secure content unlocking and Cashtab login.
+* Upgraded the PayButton dependency to v5.2.0.
+* Updated plugin compatibility to WordPress 6.9
+
 = 4.0.0 (2025/09/07) =
 * Added support for no-reload content unlocks.
 * The paywall payment dialog now closes automatically.
@@ -134,6 +146,6 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Upgrade Notice ==
 
-= 4.0.0 =
-Upgrade to version 4.0.0 for improved compatibility and reliability.
+= 5.0.0 =
+Upgrade to version 5.0.0 for improved compatibility and reliability.
 =======
