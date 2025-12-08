@@ -5,7 +5,7 @@ Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.0
-Stable tag: 4.0.0
+Stable tag: 5.0.0
 PayButton Client: 5.2.0
 PayButton Client URI: https://github.com/PayButton/paybutton
 License: MIT
