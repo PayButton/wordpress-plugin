@@ -193,6 +193,9 @@ class PayButton_AJAX {
         $incoming_unit = '';
         if ( ! empty( $currency ) ) {
             $incoming_unit = strtoupper( $currency );
+        } else {
+            wp_send_json_error( array( 'message' => 'Missing currency/unit in payload.' ), 400 );
+            return;
         }
 
         if ( $post_id <= 0 || empty( $user_address ) ) {
@@ -219,7 +222,7 @@ class PayButton_AJAX {
             return;
         }
 
-        if ( strtoupper( $incoming_unit ) !== strtoupper( $expected_unit ) ) {
+        if ( $incoming_unit !== $expected_unit ) {
             wp_send_json_error( array( 'message' => 'Currency/unit mismatch.' ), 400 );
             return;
         }
