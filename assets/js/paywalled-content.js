@@ -194,6 +194,8 @@ jQuery(document).ready(function($) {
                                     } else {
                                         alert('⚠️ Payment could not be verified on-chain. Please try again.');
                                         hidePBVerificationOverlay();
+                                        paymentInitiated = false;
+                                        unlockFlowCompleted = false;
                                     }
                                 }
                             }

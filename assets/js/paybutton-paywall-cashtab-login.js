@@ -128,6 +128,7 @@ function renderLoginPaybutton() {
                                     setTimeout(() => tryValidateLogin(2), 3000);
                                 } else {
                                     hidePBVerificationOverlay();
+                                    paymentInitiated = false;
                                     alert('⚠️ Login failed: Invalid or expired transaction.');
                                 }
                             }
