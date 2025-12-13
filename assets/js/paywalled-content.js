@@ -20,6 +20,21 @@
  *              the now unlocked content is displayed.
  *   3. Finally, the render() method is called on the container to display the button.
  */
+
+/* Show/Hide Verification Overlay*/
+function showPBVerificationOverlay(msg = "Verifying Payment...") {
+    const el = document.getElementById('paybutton_overlay');
+    if (!el) return;
+    document.getElementById('paybutton_overlay_text').innerText = msg;
+    el.style.display = 'block';
+}
+
+function hidePBVerificationOverlay() {
+    const el = document.getElementById('paybutton_overlay');
+    if (!el) return;
+    el.style.display = 'none';
+}
+
 jQuery(document).ready(function($) {
     $('.paybutton-container').each(function() {
         var $container = $(this);
@@ -37,6 +52,8 @@ jQuery(document).ready(function($) {
         // Shared state: user wallet address + unlock tx captured in onSuccess.
         let unlockAddr = null;
         let unlockTx   = null;
+        // Check if the unlock flow has completed to avoid showing the verification overlay.
+        let unlockFlowCompleted = false;
 
         // Helper to fetch and inject unlocked content
         function fetchUnlocked() {
@@ -157,6 +174,8 @@ jQuery(document).ready(function($) {
                                         success: function () {
                                             // Finally, fetch and render the unlocked content
                                             fetchUnlocked();
+                                            unlockFlowCompleted = true;
+                                            hidePBVerificationOverlay();
                                         }
                                     });
                                 } else {
@@ -171,6 +190,7 @@ jQuery(document).ready(function($) {
                                         }, nextDelay);
                                     } else {
                                         alert('⚠️ Payment could not be verified on-chain. Please try again.');
+                                        hidePBVerificationOverlay();
                                     }
                                 }
                             }
@@ -186,6 +206,11 @@ jQuery(document).ready(function($) {
                 // Safe to clear shared state (the flow above uses the copies)
                 unlockAddr = null;
                 unlockTx   = null;
+            },
+            onClose: function() {
+                if (!unlockFlowCompleted) {
+                    showPBVerificationOverlay();
+                }
             },
         });
     });

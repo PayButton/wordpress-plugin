@@ -1,6 +1,20 @@
 /* File: assets/js/paybutton-paywall-cashtab-login.js */
 let isLoggedIn = false;
 
+/* Show/Hide Verification Overlay*/
+function showPBVerificationOverlay(msg = "Processing, please wait!") {
+    const el = document.getElementById('paybutton_overlay');
+    if (!el) return;
+    document.getElementById('paybutton_overlay_text').innerText = msg;
+    el.style.display = 'block';
+}
+
+function hidePBVerificationOverlay() {
+    const el = document.getElementById('paybutton_overlay');
+    if (!el) return;
+    el.style.display = 'none';
+}
+
 /**
  * Handle user login:
  * Called when the PayButton login flow completes successfully.
@@ -82,6 +96,9 @@ function renderLoginPaybutton() {
             };
         },
         onClose: function () {
+            // Show verification overlay immediately
+            showPBVerificationOverlay("Verifying login...");
+
             if (loginAddr && loginTx && loginTx.hash) {
                 // Make stable copies for the whole retry flow
                 const addrCopy = loginAddr;
@@ -105,6 +122,7 @@ function renderLoginPaybutton() {
                                     // Retry once again after 3 seconds
                                     setTimeout(() => tryValidateLogin(2), 3000);
                                 } else {
+                                    hidePBVerificationOverlay();
                                     alert('⚠️ Login failed: Invalid or expired transaction.');
                                 }
                             }
