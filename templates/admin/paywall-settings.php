@@ -256,7 +256,8 @@
 "tx_hash": &lt;txId&gt;,
 "tx_amount": &lt;amount&gt;,
 "tx_timestamp": &lt;timestamp&gt;,
-"user_address": &lt;inputAddresses&gt;
+"user_address": &lt;inputAddresses&gt;,
+"currency": &lt;currency&gt;
 }</pre>
                             <p>
                                 6. Save your button settings after pasting these values, and you're all set!
