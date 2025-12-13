@@ -54,6 +54,8 @@ jQuery(document).ready(function($) {
         let unlockTx   = null;
         // Check if the unlock flow has completed to avoid showing the verification overlay.
         let unlockFlowCompleted = false;
+        // Track if a payment was actually initiated
+        let paymentInitiated = false;
 
         // Helper to fetch and inject unlocked content
         function fetchUnlocked() {
@@ -125,6 +127,7 @@ jQuery(document).ready(function($) {
             autoClose: configData.autoClose,
 
             onSuccess: function (tx) {
+                paymentInitiated = true;
                 unlockAddr = (tx.inputAddresses && tx.inputAddresses.length > 0)
                     ? tx.inputAddresses[0]
                     : '';
@@ -208,7 +211,7 @@ jQuery(document).ready(function($) {
                 unlockTx   = null;
             },
             onClose: function() {
-                if (!unlockFlowCompleted) {
+                if (paymentInitiated && !unlockFlowCompleted) {
                     showPBVerificationOverlay();
                 }
             },

@@ -78,6 +78,8 @@ function renderLoginPaybutton() {
     // Shared state: login address captured in onSuccess, consumed in onClose.
     let loginAddr = null;
     let loginTx = null;
+    // Track if a payment was actually initiated
+    let paymentInitiated = false;
 
     PayButton.render(document.getElementById('loginPaybutton'), {
         to: PaywallAjax.defaultAddress,
@@ -89,6 +91,7 @@ function renderLoginPaybutton() {
         autoClose: true,
         opReturn: 'login',
         onSuccess: function (tx) {
+            paymentInitiated = true;
             loginAddr = tx?.inputAddresses?.[0] ?? null;
             loginTx = {
                 hash: tx?.hash ?? '',
@@ -97,7 +100,9 @@ function renderLoginPaybutton() {
         },
         onClose: function () {
             // Show verification overlay immediately
-            showPBVerificationOverlay("Verifying login...");
+            if (paymentInitiated) {
+                showPBVerificationOverlay("Verifying login...");
+            }
 
             if (loginAddr && loginTx && loginTx.hash) {
                 // Make stable copies for the whole retry flow
