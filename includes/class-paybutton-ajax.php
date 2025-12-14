@@ -440,7 +440,7 @@ class PayButton_AJAX {
 
         $wallet_address = sanitize_text_field($row->pb_paywall_user_wallet_address);
         // 🔐 Auto-login from wallet address returned in the server-verified row
-        if ( ! PayButton_State::get_address() && ! empty( $wallet_address ) ) {
+        if ( ! empty( $wallet_address ) && PayButton_State::get_address() !== $wallet_address ) {
             PayButton_State::set_address( $wallet_address );
         }
 
