@@ -101,7 +101,8 @@ class PayButton_AJAX {
         $tx_hash_raw    = $json['tx_hash']                ?? '';
         $tx_amount_raw  = $json['tx_amount']              ?? '';
         $ts_raw         = $json['tx_timestamp']           ?? 0;
-        $user_addr_raw = $json['user_address'][0]['address'] ?? ($json['user_address'][0] ?? '');
+        $user_addr_raw  = $json['user_address'][0]['address'] ?? ($json['user_address'][0] ?? '');
+        $currency_raw   = $json['currency']               ?? '';
 
         unset( $json );   // discard the rest immediately
 
@@ -131,6 +132,7 @@ class PayButton_AJAX {
         $tx_amount    = sanitize_text_field( $tx_amount_raw );
         $tx_timestamp = intval( $ts_raw );
         $user_address = sanitize_text_field( $user_addr_raw );
+        $currency     = sanitize_text_field( $currency_raw );
         // error_log('[paybutton] rawMessage=' . print_r($post_id_raw, true));
         /**
          * If PayButton OP_RETURN (carried via post_id.rawMessage) indicates a login flow,
@@ -180,22 +182,63 @@ class PayButton_AJAX {
         // Convert timestamp to MySQL datetime
         $mysql_timestamp = $tx_timestamp ? gmdate('Y-m-d H:i:s', $tx_timestamp) : '0000-00-00 00:00:00';
 
-        if ($post_id > 0 && !empty($user_address)) {
-            $is_logged_in = 0;
-
-            // Store the payment in the database
-            $this->store_unlock_in_db(
-                sanitize_text_field($user_address),
-                $post_id,
-                sanitize_text_field($tx_hash),
-                sanitize_text_field($tx_amount),
-                $mysql_timestamp,
-                $is_logged_in
-            );
-            wp_send_json_success();
+        /*
+         * Real-time price + currency validation and DB write:
+         *  - Use numeric post_id
+         *  - Use webhook-supplied currency field (payload->currency)
+         *  - Parse expected price/unit from shortcode
+         *  - Enforce numeric price (>= expected within epsilon)
+         *  - Enforce unit equality using webhook currency
+        */
+        $incoming_unit = '';
+        if ( ! empty( $currency ) ) {
+            $incoming_unit = strtoupper( $currency );
         } else {
-            wp_send_json_error(['message' => 'Missing post_id or user_address.']);
+            wp_send_json_error( array( 'message' => 'Missing currency/unit in payload.' ), 400 );
+            return;
         }
+
+        if ( $post_id <= 0 || empty( $user_address ) ) {
+            wp_send_json_error( array( 'message' => 'Missing post_id or user_address.' ), 400 );
+            return;
+        }
+
+        // Get expected price and unit by parsing shortcode in the post content
+        $required = $this->paybutton_get_paywall_requirements( $post_id );
+        if ( $required === null ) {
+            wp_send_json_error( array( 'message' => 'Post not configured for paywall.' ), 400 );
+            return;
+        }
+
+        $expected_price = floatval( $required['price'] );
+        $expected_unit = strtoupper( $required['unit'] );
+
+
+        // Numeric amount check
+        $paid_amount = floatval( $tx_amount );
+        $epsilon = 0.05; // tolerance for rounding differences
+        if ( $paid_amount + $epsilon < $expected_price ) {
+            wp_send_json_error( array( 'message' => 'Underpaid transaction ignored.' ), 400 );
+            return;
+        }
+
+        if ( $incoming_unit !== $expected_unit ) {
+            wp_send_json_error( array( 'message' => 'Currency/unit mismatch.' ), 400 );
+            return;
+        }
+
+        // Passed validation -> store unlock in DB
+        $is_logged_in = 0;
+        $this->store_unlock_in_db(
+            sanitize_text_field( $user_address ),
+            $post_id,
+            sanitize_text_field( $tx_hash ),
+            floatval( $tx_amount ),
+            $mysql_timestamp,
+            $is_logged_in
+        );
+
+        wp_send_json_success();
     }
 
     // Verify the signature using the public key
@@ -230,6 +273,59 @@ class PayButton_AJAX {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Get expected paywall price and unit for a post/page by parsing its
+     * first [paywalled_content] shortcode.
+     *
+     * @param int $post_id
+     * @return array|null Array( 'price' => float, 'unit' => string ) or null if not paywalled.
+    */
+    private function paybutton_get_paywall_requirements( $post_id ) {
+        $post_id = absint( $post_id );
+        if ( ! $post_id ) {
+            return null;
+        }
+
+        $post = get_post( $post_id );
+        if ( ! $post || ! isset( $post->post_content ) ) {
+            return null;
+        }
+
+        $content = $post->post_content;
+
+        // Capture the first [paywalled_content ...] opening tag attributes
+        if ( preg_match( '/\[paywalled_content([^\]]*)\]/i', $content, $matches ) ) {
+            $atts_raw = isset( $matches[1] ) ? $matches[1] : '';
+            $atts     = shortcode_parse_atts( $atts_raw );
+
+            $price = null;
+            $unit  = '';
+
+            if ( isset( $atts['price'] ) && $atts['price'] !== '' ) {
+                $price = floatval( trim( $atts['price'] ) );
+            }
+
+            if ( isset( $atts['unit'] ) && $atts['unit'] !== '' ) {
+                $unit  = strtoupper( sanitize_text_field( trim( $atts['unit'] ) ) );
+            }
+
+            // Fallbacks to plugin options
+            if ( $price === null || $price === 0.0 ) {
+                $price = floatval( get_option( 'paybutton_paywall_default_price', 5.5 ) );
+            }
+            if ( $unit === '' ) {
+                $unit = strtoupper( sanitize_text_field( get_option( 'paybutton_paywall_unit', 'XEC' ) ) );
+            }
+
+            return array(
+                'price' => $price,
+                'unit'  => $unit,
+            );
+        }
+
+        return null;
     }
     /**
      * The following function sets the user's wallet address in a cookie via AJAX after
