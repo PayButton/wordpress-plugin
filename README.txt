@@ -5,7 +5,7 @@ Tags: paywall, monetization, donation, crypto, ecash
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.0
-Stable tag: 5.0.0
+Stable tag: 5.1.0
 PayButton Client: 5.2.0
 PayButton Client URI: https://github.com/PayButton/paybutton
 License: MIT
@@ -74,6 +74,11 @@ This plugin communicates with the PayButton API to fetch information about the a
 The integration uses the SideShift API to enable the button or widget to accept payments in a different currency than the one being received. This service is provided by SideShift.AI: [terms of use](https://sideshift.ai/legal).
 
 == Changelog ==
+
+= 5.1.0 (2025/12/14) =
+* Added Payment Verification overlay.
+* Enforced server-side price and currency validation for the paywall.
+* Fixed auto-login wallet switching after content unlock.
 
 = 5.0.0 (2025/12/08) =
 * Added configurable cookie TTL with support for unlimited sessions by default.
@@ -146,6 +151,6 @@ The integration uses the SideShift API to enable the button or widget to accept 
 
 == Upgrade Notice ==
 
-= 5.0.0 =
-Upgrade to version 5.0.0 for improved compatibility and reliability.
+= 5.1.0 =
+Upgrade to version 5.1.0 for improved compatibility and reliability.
 =======
