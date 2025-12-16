@@ -29,6 +29,7 @@ require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-activator.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-deactivator.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-admin.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-public.php';
+require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-transactions.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-ajax.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-state.php';
 
