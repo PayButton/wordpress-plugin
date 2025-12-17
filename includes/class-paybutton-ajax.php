@@ -218,6 +218,9 @@ class PayButton_AJAX {
                 // 4. Add informative note
                 $note = sprintf( 'PayButton Payment Received via Webhook. Value: $%s. Tx Hash: %s', $fiatValue, $tx_hash );
                 $order->add_order_note( $note );
+                $order->update_meta_data( '_paybutton_tx_hash', $tx_hash );
+                $order->update_meta_data( '_paybutton_fiat_value', $fiatValue );
+                $order->save();
                 
                 wp_send_json_success( array( 'message' => 'WooCommerce Order Updated' ) );
                 return; // Stop processing
