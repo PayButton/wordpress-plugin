@@ -24,6 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'PAYBUTTON_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PAYBUTTON_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+// NEW: Declare HPOS Compatibility for WooCommerce
+// This must run on 'before_woocommerce_init' to ensure WooCommerce knows we support custom order tables.
+add_action( 'before_woocommerce_init', function() {
+    if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+    }
+} );
+
 // Include required class files.
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-activator.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-deactivator.php';

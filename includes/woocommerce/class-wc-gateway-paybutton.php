@@ -128,10 +128,6 @@ function init_wc_gateway_paybutton() {
 
             // Get Address (Gateway Setting -> Global Fallback)
             $address = $this->get_option( 'address' );
-
-            if ( empty( $address ) ) {
-                return;
-            }
             
             if ( empty( $address ) ) {
                 // Should logically not happen if we block activation, but good as a failsafe
