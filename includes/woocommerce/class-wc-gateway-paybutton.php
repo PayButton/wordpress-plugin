@@ -119,7 +119,11 @@ function init_wc_gateway_paybutton() {
             if ( ! $order ) return;
 
             if ( $order->is_paid() ) {
-                return; 
+                echo '<div class="woocommerce-message woocommerce-message--success">';
+                echo '<strong>Payment confirmed!</strong><br>';
+                echo 'Your payment has been received and your order is now being processed.';
+                echo '</div>';
+                return;
             }
 
             // Get Address (Gateway Setting -> Global Fallback)
