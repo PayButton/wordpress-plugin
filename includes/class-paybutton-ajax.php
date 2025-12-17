@@ -54,6 +54,10 @@ class PayButton_AJAX {
         // AJAX endpoint to get sticky header HTML for auto-login after content unlock
         add_action( 'wp_ajax_paybutton_get_sticky_header', array( $this, 'get_sticky_header' ) );
         add_action( 'wp_ajax_nopriv_paybutton_get_sticky_header', array( $this, 'get_sticky_header' ) );
+
+        // WooCommerce Order Status Polling
+        add_action( 'wp_ajax_paybutton_check_order_status', array( $this, 'check_order_status' ) );
+        add_action( 'wp_ajax_nopriv_paybutton_check_order_status', array( $this, 'check_order_status' ) );
     }
     /**
      * Payment Trigger Handler with Cryptographic Verification
@@ -103,6 +107,7 @@ class PayButton_AJAX {
         $ts_raw         = $json['tx_timestamp']           ?? 0;
         $user_addr_raw  = $json['user_address'][0]['address'] ?? ($json['user_address'][0] ?? '');
         $currency_raw   = $json['currency']               ?? '';
+        $fiatValue      = $json['value']                  ?? 0;
 
         unset( $json );   // discard the rest immediately
 
@@ -130,6 +135,26 @@ class PayButton_AJAX {
             return;
         }
         // error_log('[paybutton] signature ok');
+
+        // Ensure OP_RETURN (rawMessage) is cryptographically bound to the payload
+        $op_return = (string) $post_id_raw;
+        $op_return = trim($op_return);
+
+        if ( $op_return === '' || strpos( $payload, $op_return ) === false ) {
+            wp_send_json_error(
+                [ 'message' => 'Payload does not match OP_RETURN.' ],
+                400
+            );
+            return;
+        }
+
+        if ( $tx_hash_raw && strpos( $payload, $tx_hash_raw ) === false ) {
+            wp_send_json_error(
+                [ 'message' => 'Payload does not match tx_hash.' ],
+                400
+            );
+            return;
+        }
 
         //Sanitize data
         $post_id      = intval( $post_id_raw );
@@ -161,6 +186,42 @@ class PayButton_AJAX {
 
             wp_send_json_success(['message' => 'Login tx recorded']);
             return;
+        }
+
+        // --- BRANCH 2: WOOCOMMERCE PAYMENTS ---
+        if ( class_exists( 'WooCommerce' ) ) {
+            $order = wc_get_order( $post_id );
+            
+            if ( $order && $order instanceof WC_Order ) {
+                
+                // 1. Check if already paid
+                if ( $order->is_paid() ) {
+                    wp_send_json_success( array( 'message' => 'Order already paid' ) );
+                    return;
+                }
+
+                // 2. Validate Amount using Fiat Value (USD) from Webhook
+                // We compare the webhook's USD value ($fiatValue) against the Order Total.
+                
+                $expected_fiat = (float) $order->get_total();
+                // Allow small epsilon for floating point math
+                if ( $fiatValue < ( $expected_fiat - 0.05 ) ) {
+                     // Add note about underpayment but don't mark complete yet
+                     $order->add_order_note( sprintf( 'Underpayment detected. Expected $%s but received $%s worth of crypto. Tx: %s', $expected_fiat, $fiatValue, $tx_hash ) );
+                     wp_send_json_error( array( 'message' => 'Insufficient fiat value.' ), 400 );
+                     return;
+                }
+
+                // 3. Mark as Paid
+                $order->payment_complete( $tx_hash );
+                
+                // 4. Add informative note
+                $note = sprintf( 'PayButton Payment Received via Webhook. Value: $%s. Tx Hash: %s', $fiatValue, $tx_hash );
+                $order->add_order_note( $note );
+                
+                wp_send_json_success( array( 'message' => 'WooCommerce Order Updated' ) );
+                return; // Stop processing
+            }
         }
         // Convert timestamp to MySQL datetime
         $mysql_timestamp = $tx_timestamp ? gmdate('Y-m-d H:i:s', $tx_timestamp) : '0000-00-00 00:00:00';
@@ -550,5 +611,28 @@ class PayButton_AJAX {
         wp_send_json_success( array(
             'html' => $html,
         ) );
+    }
+
+    /**
+     * Polls to see if a WooCommerce order has been paid.
+    */
+    public function check_order_status() {
+        check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
+        
+        if ( ! class_exists( 'WooCommerce' ) ) wp_send_json_error();
+
+        $order_id = isset( $_POST['order_id'] ) ? intval( $_POST['order_id'] ) : 0;
+        $order    = wc_get_order( $order_id );
+
+        if ( $order && $order->is_paid() ) {
+            wp_send_json_success();
+        }
+        
+        // Also check if status is processing (for manual verification workflows)
+        if ( $order && ( $order->has_status( 'processing' ) || $order->has_status( 'completed' ) ) ) {
+            wp_send_json_success();
+        }
+
+        wp_send_json_error();
     }
 }

@@ -33,6 +33,12 @@ require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-transactions.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-ajax.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-state.php';
 
+// --- NEW: Include WooCommerce Gateway ---
+// We load this file, but the class inside it initiates itself safely on 'plugins_loaded'
+if ( file_exists( PAYBUTTON_PLUGIN_DIR . 'includes/woocommerce/class-wc-gateway-paybutton.php' ) ) {
+    require_once PAYBUTTON_PLUGIN_DIR . 'includes/woocommerce/class-wc-gateway-paybutton.php';
+}
+
 /**
  * Registers the plugin's activation and deactivation hooks.
  *
@@ -61,6 +67,36 @@ add_action( 'plugins_loaded', function() {
     // Initialize AJAX handlers.
     new PayButton_AJAX();
 }, 1);  // Use a priority to ensure this runs before other actions that might depend on session data.
+
+// 1. Register the Gateway
+add_filter( 'woocommerce_payment_gateways', 'add_paybutton_gateway_class' );
+
+function add_paybutton_gateway_class( $gateways ) {
+    if ( class_exists( 'WC_Gateway_PayButton' ) ) {
+        $gateways[] = 'WC_Gateway_PayButton';
+    }
+    return $gateways;
+}
+
+// 2. Register Gutenberg Block Support
+add_action( 'woocommerce_blocks_payment_method_type_registration', 'register_paybutton_blocks_support' );
+
+function register_paybutton_blocks_support( \Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+    // Ensure WooCommerce Blocks class exists
+    if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+        return;
+    }
+
+    $block_support_file = PAYBUTTON_PLUGIN_DIR . 'includes/woocommerce/class-paybutton-blocks-support.php';
+    
+    if ( file_exists( $block_support_file ) ) {
+        require_once $block_support_file;
+        
+        if ( class_exists( 'WC_PayButton_Blocks_Support' ) ) {
+            $payment_method_registry->register( new WC_PayButton_Blocks_Support() );
+        }
+    }
+}
 
 add_action('admin_init', function() {
     if (get_option('paybutton_activation_redirect', false)) {
