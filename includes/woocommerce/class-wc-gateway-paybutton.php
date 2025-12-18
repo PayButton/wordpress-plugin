@@ -148,8 +148,7 @@ function init_wc_gateway_paybutton() {
 
             if ( $order->is_paid() ) {
                 echo '<div class="woocommerce-message woocommerce-message--success">';
-                echo '<strong>Payment confirmed!</strong><br>';
-                echo 'Your payment has been received and your order is now being processed.';
+                echo '<strong>Payment confirmed! Your order is now being processed.</strong>';
                 echo '</div>';
                 return;
             }
@@ -197,7 +196,7 @@ function init_wc_gateway_paybutton() {
             $val_usd = $order->get_meta( '_paybutton_fiat_value' );
 
             echo '<div style="clear:both;"></div>';
-            echo '<div class="paybutton-order-panel" style="margin-top:26px; border-top:1px solid #eee; width:100%;">';
+            echo '<div class="paybutton-order-panel" style="margin-top:18px; border-top:1px solid #eee; width:100%;">';
             echo '<h4>' . esc_html__( 'PayButton Transaction Details', 'paybutton' ) . '</h4>';
 
             if ( ! $tx_hash ) {
