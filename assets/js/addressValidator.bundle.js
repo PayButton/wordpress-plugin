@@ -752,45 +752,93 @@
 	window.cashaddrExports = cashaddrExports;
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Find the wallet address input field by its ID.
-      const addressInput = document.getElementById('paybutton_admin_wallet_address');
-      if (!addressInput) return;
-      
-      // Find or create a span for validation feedback.
-      let resultSpan = document.getElementById('adminAddressValidationResult');
-      if (!resultSpan) {
-        resultSpan = document.createElement('span');
-        resultSpan.id = 'adminAddressValidationResult';
-        addressInput.parentNode.appendChild(resultSpan);
-      }
-      
-      // Select the "Save Changes" button by its name attribute.
-      const saveButton = document.querySelector('button[name="paybutton_paywall_save_settings"]');
-      
-      // Listen to input events to auto-validate as the user types.
-      addressInput.addEventListener('input', () => {
-        const address = addressInput.value.trim();
-        if (address === "") {
-          resultSpan.textContent = '';
-          resultSpan.style.color = '';
-          if (saveButton) saveButton.disabled = true;
-          return;
-        }
-        
-        const valid = cashaddrExports.isValidCashAddress(address);
-        if (valid) {
-          resultSpan.textContent = '✅ Valid address';
-          resultSpan.style.color = 'green';
-          if (saveButton) saveButton.disabled = false;
-        } else {
-          resultSpan.textContent = '❌ Invalid address';
-          resultSpan.style.color = 'red';
-          if (saveButton) saveButton.disabled = true;
-        }
-      });
-      
-      // Run validation immediately on page load in case the field already has a value.
-      addressInput.dispatchEvent(new Event('input'));
-    });
 
+      // Define the targets: Input ID, Button Name (to disable/enable), and Context
+      const targets = [
+        { 
+          input: 'paybutton_admin_wallet_address', 
+          btnName: 'paybutton_paywall_save_settings',
+          context: 'paywall'
+        },
+        { 
+          input: 'pbGenTo', 
+          btnName: null, // Generator doesn't have a save button to block
+          context: 'generator'
+        },
+        { 
+          input: 'woocommerce_paybutton_address', 
+          btnName: 'save', // Standard WooCommerce save button name
+          context: 'woo'
+        }
+      ];
+
+      targets.forEach(target => {
+        const addressInput = document.getElementById(target.input);
+        if (!addressInput) return;
+
+        // Create a unique span ID for this input
+        const resultSpanId = target.input + '_validation_result';
+        
+        // Find or create a span for validation feedback.
+        let resultSpan = document.getElementById(resultSpanId);
+        
+        if (!resultSpan) {
+          resultSpan = document.createElement('span');
+          resultSpan.id = resultSpanId;
+          
+          // STYLING UPDATES
+          resultSpan.style.display = 'block'; 
+          resultSpan.style.fontWeight = 'bold';
+          // Add spacing below the text so it doesn't touch the input
+          resultSpan.style.marginBottom = '5px'; 
+          
+          // PLACEMENT FIX (ABOVE INPUT BOX)
+          // This inserts the resultSpan immediately BEFORE the addressInput element.
+          // On the Generator page, this will place it between the Label and the Input.
+          addressInput.parentNode.insertBefore(resultSpan, addressInput);
+        }
+
+        // Select the "Save Changes" button if applicable
+        let saveButton = null;
+        if (target.btnName) {
+            saveButton = document.querySelector(`button[name="${target.btnName}"]`);
+        }
+
+        const validateAddress = () => {
+          const address = addressInput.value.trim();
+          
+          // Reset if empty
+          if (address === "") {
+            resultSpan.textContent = '';
+            // When empty, we hide the margin so it doesn't create a blank gap above the input
+            resultSpan.style.marginBottom = '0px'; 
+            resultSpan.style.color = '';
+            
+            if (saveButton) saveButton.disabled = true;
+            return;
+          }
+
+          // Restore margin when text is visible
+          resultSpan.style.marginBottom = '3px'; 
+
+          const valid = cashaddrExports.isValidCashAddress(address);
+          
+          if (valid) {
+            resultSpan.textContent = '✅ Valid address';
+            resultSpan.style.color = 'green';
+            if (saveButton) saveButton.disabled = false;
+          } else {
+            resultSpan.textContent = '❌ Invalid address';
+            resultSpan.style.color = 'red';
+            if (saveButton) saveButton.disabled = true;
+          }
+        };
+
+        // Listen to input events
+        addressInput.addEventListener('input', validateAddress);
+        
+        // Run immediately on load
+        validateAddress();
+      });
+    });
 })();

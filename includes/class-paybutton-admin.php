@@ -116,6 +116,18 @@ class PayButton_Admin {
             true
         );
 
+        // Load the address validator on WooCommerce settings page too
+        if ( $hook_suffix === 'woocommerce_page_wc-settings' ) {
+            // Enqueue the bundled address validator script
+            wp_enqueue_script(
+                'address-validator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
+                array(),
+                '2.0.0',
+                true
+            );
+        }
+
         if ( $hook_suffix === 'paybutton_page_paybutton-paywall' ) {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );
