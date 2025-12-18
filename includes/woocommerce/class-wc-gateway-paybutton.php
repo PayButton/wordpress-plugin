@@ -167,10 +167,11 @@ function init_wc_gateway_paybutton() {
                 'hoverText'   => 'Click to Pay',
                 'opReturn'    => (string) $order_id, 
                 'successText' => 'Payment Received! Processing...',
-                'autoClose'   => true
+                'autoClose'   => true,
+                'size'        => 'xl'
             );
 
-            echo '<h3>Complete your payment</h3>';
+            echo '<h2>Complete your payment</h2>';
             echo '<div class="paybutton-woo-container" data-config="' . esc_attr( json_encode( $config ) ) . '" style="margin: 20px 0;"></div>';
         }
 
