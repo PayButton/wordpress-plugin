@@ -55,7 +55,9 @@ final class WC_PayButton_Blocks_Support extends AbstractPaymentMethodType {
         return array(
             'title'       => $gateway ? $gateway->get_title() : 'PayButton',
             'description' => $gateway ? $gateway->get_description() : '',
-            'icon'        => PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png', 
+            'icon'        => PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png',
+            // NEW: Secondary icon (eCash)
+            'icon2'       => PAYBUTTON_PLUGIN_URL . 'assets/icons/eCash.png',
             'supports'    => array( 'products' ),
         );
     }

@@ -11,7 +11,7 @@
     
     const labelText = decodeEntities( settings.title || 'PayButton' );
 
-    // Create a Custom Label Component (Image ONLY)
+    // Create a Custom Label Component (Dual Icons)
     const LabelIconOnly = () => {
         return createElement(
             'span', 
@@ -19,20 +19,42 @@
                 style: { 
                     display: 'flex', 
                     alignItems: 'center', 
-                    width: '100%' 
+                    width: '100%',
                 } 
             },
-            // 1. The Image
+            // 1. The PayButton Image
             settings.icon ? createElement( 'img', { 
                 src: settings.icon, 
                 alt: labelText,
                 style: { 
-                    maxHeight: '30px', // Slightly larger since it stands alone
+                    maxHeight: '30px', 
                     objectFit: 'contain'
                 } 
-            } ) 
-            // 2. Fallback: If no icon is found, show text so the button isn't invisible
-            : createElement( 'span', null, labelText )
+            } ) : null,
+
+            // 2. The Pipeline Separator (Only shows if BOTH icons exist)
+            (settings.icon && settings.icon2) ? createElement( 'span', {
+                style: {
+                    margin: '0 10px', // Spacing around the pipe
+                    color: '#ccc',    // Light gray color
+                    fontSize: '24px', // Size of the pipe
+                    lineHeight: '1',
+                    fontWeight: '300'
+                }
+            }, '|' ) : null,
+
+            // 3. The eCash Image
+            settings.icon2 ? createElement( 'img', { 
+                src: settings.icon2, 
+                alt: 'eCash',
+                style: { 
+                    maxHeight: '24px', 
+                    objectFit: 'contain'
+                } 
+            } ) : null,
+
+            // 4. Fallback: If no icons are found, show text
+            (!settings.icon && !settings.icon2) ? createElement( 'span', null, labelText ) : null
         );
     };
 
