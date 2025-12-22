@@ -33,6 +33,8 @@ class PayButton_Public {
         add_filter( 'preprocess_comment', array( $this, 'block_comment_if_locked' ) );
         // Hard-block comment creation via REST API as well when the paywalled content is locked
         add_filter( 'rest_pre_insert_comment', array( $this, 'block_comment_if_locked_rest' ), 10, 2 );
+        add_action( 'wp_footer', array( $this, 'output_paybutton_overlay' ), 5 );
+        add_filter( 'body_class', array( $this, 'filter_body_classes' ) );
     }
 
     /**
@@ -163,6 +165,9 @@ class PayButton_Public {
      * Output the sticky header HTML.
      */
     public function output_sticky_header() {
+        if ( get_option( 'paybutton_hide_sticky_header', '0' ) === '1' ) {
+            return;
+        }
         $paybutton_user_wallet_address = sanitize_text_field( PayButton_State::get_address() );
         $this->load_public_template( 'sticky-header', array(
             'paybutton_user_wallet_address' => $paybutton_user_wallet_address
@@ -375,5 +380,20 @@ class PayButton_Public {
             );
         }
         return $prepared;
+    }
+    /**
+     * Output the PayButton overlay HTML.
+    */
+    public function output_paybutton_overlay() {
+        $this->load_public_template( 'paybutton-overlay' );
+    }
+    /**
+     * Filter to add custom body classes.
+    */
+    public function filter_body_classes( $classes ) {
+        if ( get_option( 'paybutton_hide_sticky_header', '0' ) !== '1' ) {
+            $classes[] = 'pb-has-sticky-header';
+        }
+        return $classes;
     }
 }

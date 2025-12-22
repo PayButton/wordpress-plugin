@@ -343,6 +343,11 @@ class PayButton_Admin {
             ? sanitize_hex_color( wp_unslash( $_POST['paybutton_frontend_unlock_color'] ) )
             : '#0074C2';
         update_option( 'paybutton_frontend_unlock_color', $frontend_unlock_color );
+
+        update_option(
+            'paybutton_hide_sticky_header',
+            isset( $_POST['paybutton_hide_sticky_header'] ) ? '1' : '0'
+        );
     }
 
     /**

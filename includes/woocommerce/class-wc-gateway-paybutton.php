@@ -55,7 +55,7 @@ function init_wc_gateway_paybutton() {
                 'title' => array(
                     'title'       => 'Title',
                     'type'        => 'text',
-                    'default'     => 'Pay with eCash (XEC)',
+                    'default'     => 'PayButton',
                     'desc_tip'    => true,
                 ),
                 'description' => array(
@@ -150,6 +150,7 @@ function init_wc_gateway_paybutton() {
                 echo '<div class="woocommerce-message woocommerce-message--success">';
                 echo '<strong>Payment confirmed! Your order is now being processed.</strong>';
                 echo '</div>';
+                echo '<br>';
                 return;
             }
 

@@ -599,6 +599,10 @@ class PayButton_AJAX {
     public function get_sticky_header() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
 
+        if ( get_option( 'paybutton_hide_sticky_header', '0' ) === '1' ) {
+            wp_send_json_success( array( 'html' => '' ) );
+        }
+
         $template = PAYBUTTON_PLUGIN_DIR . 'templates/public/sticky-header.php';
         if ( ! file_exists( $template ) ) {
             wp_send_json_error( array( 'message' => 'Sticky header template not found.' ), 500 );
