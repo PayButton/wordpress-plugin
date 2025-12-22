@@ -7,9 +7,9 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // We hook into plugins_loaded to ensuring WC is loaded first
-add_action( 'plugins_loaded', 'init_wc_gateway_paybutton' );
+add_action( 'plugins_loaded', 'paybutton_init_wc_gateway' );
 
-function init_wc_gateway_paybutton() {
+function paybutton_init_wc_gateway() {
     if ( ! class_exists( 'WC_Payment_Gateway' ) ) return;
 
     class WC_Gateway_PayButton extends WC_Payment_Gateway {
@@ -78,10 +78,23 @@ function init_wc_gateway_paybutton() {
          * Overridden to prevent activation if address is missing.
         */
         public function process_admin_options() {
+
+            // Verify WooCommerce settings nonce
+            if (
+                ! isset( $_POST['_wpnonce'] ) ||
+                ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'woocommerce-settings' )
+            ) {
+                return;
+            }
+
             $is_enabling = isset( $_POST['woocommerce_paybutton_enabled'] );
-            $posted_address = isset( $_POST['woocommerce_paybutton_address'] )
-                ? sanitize_text_field( $_POST['woocommerce_paybutton_address'] )
-                : '';
+
+            $posted_address = '';
+            if ( isset( $_POST['woocommerce_paybutton_address'] ) ) {
+                $posted_address = sanitize_text_field(
+                    wp_unslash( $_POST['woocommerce_paybutton_address'] )
+                );
+            }
 
             if ( $is_enabling && empty( $posted_address ) ) {
                 WC_Admin_Settings::add_error(
@@ -158,7 +171,7 @@ function init_wc_gateway_paybutton() {
             if ( empty( $address ) ) return;
 
             $amount_formatted = $order->get_formatted_order_total();
-            $pay_text = 'Pay ' . strip_tags( $amount_formatted ); 
+            $pay_text = 'Pay ' . wp_strip_all_tags( $amount_formatted ); 
 
             $config = array(
                 'to'          => $address,

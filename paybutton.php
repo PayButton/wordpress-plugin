@@ -77,9 +77,9 @@ add_action( 'plugins_loaded', function() {
 }, 1);  // Use a priority to ensure this runs before other actions that might depend on session data.
 
 // 1. Register the Gateway
-add_filter( 'woocommerce_payment_gateways', 'add_paybutton_gateway_class' );
+add_filter( 'woocommerce_payment_gateways', 'paybutton_add_gateway_class' );
 
-function add_paybutton_gateway_class( $gateways ) {
+function paybutton_add_gateway_class( $gateways ) {
     if ( class_exists( 'WC_Gateway_PayButton' ) ) {
         $gateways[] = 'WC_Gateway_PayButton';
     }
@@ -87,9 +87,9 @@ function add_paybutton_gateway_class( $gateways ) {
 }
 
 // 2. Register Gutenberg Block Support
-add_action( 'woocommerce_blocks_payment_method_type_registration', 'register_paybutton_blocks_support' );
+add_action( 'woocommerce_blocks_payment_method_type_registration', 'paybutton_register_blocks_support' );
 
-function register_paybutton_blocks_support( \Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+function paybutton_register_blocks_support( \Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
     // Ensure WooCommerce Blocks class exists
     if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
         return;
@@ -111,7 +111,7 @@ add_action('admin_init', function() {
         delete_option('paybutton_activation_redirect');
         // Prevent redirect during bulk plugin activation
         if (!isset($_GET['activate-multi'])) {
-            wp_redirect(admin_url('admin.php?page=paybutton-paywall'));
+            wp_safe_redirect(admin_url('admin.php?page=paybutton-paywall'));
             exit;
         }
     }

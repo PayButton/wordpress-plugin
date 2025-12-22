@@ -69,23 +69,52 @@ class PayButton_Transactions {
 
         global $wpdb;
 
+        // Explicit table whitelist
+        $allowed_tables = [
+            $wpdb->prefix . 'paybutton_logins',
+            $wpdb->prefix . 'paybutton_paywall_unlocked',
+        ];
+
+        if ( ! in_array( $table, $allowed_tables, true ) ) {
+            return null;
+        }
+
+        // Explicit column whitelist
+        $allowed_columns = [
+            'wallet_address',
+            'tx_hash',
+            'used',
+        ];
+
         $conditions = [];
         $values     = [];
 
-        foreach ($where as $column => $value) {
-            $conditions[] = "{$column} = %s";
+        foreach ( $where as $column => $value ) {
+
+            if ( ! in_array( $column, $allowed_columns, true ) ) {
+                continue;
+            }
+
+            $conditions[] = "`{$column}` = %s";
             $values[]     = $value;
         }
 
+        if ( empty( $conditions ) ) {
+            return null;
+        }
+
+        // We construct the SQL dynamically here because the WHERE clause varies.
         $sql = "
-            SELECT id FROM {$table}
-            WHERE " . implode(' AND ', $conditions) . "
+            SELECT id
+            FROM `{$table}`
+            WHERE " . implode( ' AND ', $conditions ) . "
             AND used = 0
             ORDER BY id DESC
             LIMIT 1
         ";
 
-        $row = $wpdb->get_row($wpdb->prepare($sql, ...$values));
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- SQL is constructed dynamically with whitelisted columns and placeholders.
+        $row = $wpdb->get_row( $wpdb->prepare( $sql, ...$values ) );
 
         if (!$row) {
             return null;
@@ -96,12 +125,12 @@ class PayButton_Transactions {
         $wpdb->update(
             $table,
             [
-                'used' => 1,
+                'used'        => 1,
                 $token_column => $token,
             ],
-            ['id' => (int) $row->id],
-            ['%d', '%s'],
-            ['%d']
+            [ 'id' => (int) $row->id ],
+            [ '%d', '%s' ],
+            [ '%d' ]
         );
 
         return $token;
@@ -149,10 +178,12 @@ class PayButton_Transactions {
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
         // Check if the transaction already exists using tx hash
-        $exists = $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM $table_name WHERE tx_hash = %s LIMIT 1",
-            $tx_hash
-        ));
+        $exists = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM {$table_name} WHERE tx_hash = %s LIMIT 1",
+                $tx_hash
+            )
+        );
 
         if ($exists) {
             return; // Transaction already recorded, so we don't insert again.
@@ -163,11 +194,11 @@ class PayButton_Transactions {
             $table_name,
             array(
                 'pb_paywall_user_wallet_address' => $address,
-                'post_id'       => $post_id,
-                'tx_hash'       => $tx_hash,
-                'tx_amount'     => $tx_amount,
-                'tx_timestamp'  => $tx_dt,
-                'is_logged_in'  => $is_logged_in,
+                'post_id'                        => $post_id,
+                'tx_hash'                        => $tx_hash,
+                'tx_amount'                      => $tx_amount,
+                'tx_timestamp'                   => $tx_dt,
+                'is_logged_in'                   => $is_logged_in,
             ),
             array( '%s', '%d', '%s', '%f', '%s', '%d' )
         );

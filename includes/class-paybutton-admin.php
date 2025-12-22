@@ -85,7 +85,7 @@ class PayButton_Admin {
         ) {
             $this->save_settings();
             wp_cache_delete( 'paybutton_admin_wallet_address', 'options' );
-            wp_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
+            wp_safe_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
             exit;
         }
     }      
