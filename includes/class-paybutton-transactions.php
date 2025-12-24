@@ -184,30 +184,19 @@ class PayButton_Transactions {
         global $wpdb;
         $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
-        // Check if the transaction already exists using tx hash
-        $exists = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT id FROM {$table_name} WHERE tx_hash = %s LIMIT 1",
-                $tx_hash
-            )
-        );
-
-        if ($exists) {
-            return; // Transaction already recorded, so we don't insert again.
-        }
-
         // Insert the transaction if it's not already recorded
-        $wpdb->insert(
-            $table_name,
-            array(
-                'pb_paywall_user_wallet_address' => $address,
-                'post_id'                        => $post_id,
-                'tx_hash'                        => $tx_hash,
-                'tx_amount'                      => $tx_amount,
-                'tx_timestamp'                   => $tx_dt,
-                'is_logged_in'                   => $is_logged_in,
-            ),
-            array( '%s', '%d', '%s', '%f', '%s', '%d' )
+        $wpdb->query(
+            $wpdb->prepare(
+                "INSERT IGNORE INTO {$table_name} 
+                (pb_paywall_user_wallet_address, post_id, tx_hash, tx_amount, tx_timestamp, is_logged_in) 
+                VALUES (%s, %d, %s, %f, %s, %d)",
+                $address,
+                $post_id,
+                $tx_hash,
+                $tx_amount,
+                $tx_dt,
+                $is_logged_in
+            )
         );
     }
 
@@ -226,28 +215,16 @@ class PayButton_Transactions {
         global $wpdb;
         $table = $wpdb->prefix . 'paybutton_logins';
 
-        $exists = $wpdb->get_var(
+        $wpdb->query(
             $wpdb->prepare(
-                "SELECT id FROM {$table} WHERE wallet_address = %s AND tx_hash = %s LIMIT 1",
+                "INSERT IGNORE INTO {$table} 
+                (wallet_address, tx_hash, tx_amount, tx_timestamp, used) 
+                VALUES (%s, %s, %f, %d, 0)",
                 $wallet_address,
-                $tx_hash
+                $tx_hash,
+                $tx_amount,
+                $tx_timestamp
             )
-        );
-
-        if ($exists) {
-            return;
-        }
-
-        $wpdb->insert(
-            $table,
-            [
-                'wallet_address' => $wallet_address,
-                'tx_hash'        => $tx_hash,
-                'tx_amount'      => $tx_amount,
-                'tx_timestamp'   => $tx_timestamp,
-                'used'           => 0,
-            ],
-            ['%s','%s','%f','%d','%d']
         );
     }
 

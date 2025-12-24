@@ -186,7 +186,7 @@ function paybutton_init_wc_gateway() {
             );
 
             echo '<h2>Complete your payment</h2>';
-            echo '<div class="paybutton-woo-container" data-config="' . esc_attr( json_encode( $config ) ) . '" style="margin: 20px 0;"></div>';
+            echo '<div class="paybutton-woo-container" data-config="' . esc_attr( wp_json_encode( $config ) ) . '" style="margin: 20px 0;"></div>';
         }
 
         /**
