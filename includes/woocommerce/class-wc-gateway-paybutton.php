@@ -113,7 +113,7 @@ function paybutton_init_wc_gateway() {
             $order = wc_get_order( $order_id );
 
             $order->update_status( 'on-hold', __( 'Awaiting PayButton payment.', 'paybutton' ) );
-            $order->reduce_order_stock();
+            wc_reduce_stock_levels( $order_id );
             WC()->cart->empty_cart();
 
             return array(

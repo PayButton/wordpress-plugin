@@ -80,8 +80,15 @@ class PayButton_Transactions {
         }
 
         // Explicit column whitelist
-        $allowed_columns = [
+       $allowed_columns = [
+            // login table
             'wallet_address',
+
+            // unlock table
+            'pb_paywall_user_wallet_address',
+            'post_id',
+
+            // shared
             'tx_hash',
             'used',
         ];

@@ -116,9 +116,9 @@ class PayButton_Admin {
             true
         );
 
-        // Load the address validator on WooCommerce settings page too
-        if ( $hook_suffix === 'woocommerce_page_wc-settings' ) {
-            // Enqueue the bundled address validator script
+        $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+        if ( $screen && $screen->id === 'woocommerce_page_wc-settings' ) {
             wp_enqueue_script(
                 'address-validator',
                 PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
@@ -128,7 +128,7 @@ class PayButton_Admin {
             );
         }
 
-        if ( $hook_suffix === 'paybutton_page_paybutton-paywall' ) {
+        if ( $screen && $screen->id === 'paybutton_page_paybutton-paywall' ) {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );
 
@@ -142,10 +142,7 @@ class PayButton_Admin {
             );
         }
 
-        // Only load the generator JS on the PayButton Generator page
-        if ( $hook_suffix === 'paybutton_page_paybutton-generator' ) {
-
-            // Enqueue the bundled address validator script
+        if ( $screen && $screen->id === 'paybutton_page_paybutton-generator' ) {
             wp_enqueue_script(
                 'address-validator',
                 PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
