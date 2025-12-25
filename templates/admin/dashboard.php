@@ -23,7 +23,7 @@
                 Paywall Settings
             </a>
         </div>
-        <!-- Button 3: PayButton WooComerce -->
+        <!-- Button 3: PayButton WooCommerce -->
         <div class="paybutton-dashboard-button">
             <a href="<?php echo esc_url( $woocommerce_payments_url ); ?>" class="button button-primary paybutton-dashboard-link">
                     WooCommerce Payments
