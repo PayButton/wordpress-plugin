@@ -99,7 +99,7 @@ class PayButton_Admin {
      * color selection functionality.
     */
     public function enqueue_admin_scripts( $hook_suffix ) {
-        // Enqueue the paybutton-admin.css on every admin page
+
         wp_enqueue_style(
             'paybutton-admin',
             PAYBUTTON_PLUGIN_URL . 'assets/css/paybutton-admin.css',
@@ -116,19 +116,11 @@ class PayButton_Admin {
             true
         );
 
+        // --- SAFE SCREEN DETECTION ---
         $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
-        if ( $screen && $screen->id === 'woocommerce_page_wc-settings' ) {
-            wp_enqueue_script(
-                'address-validator',
-                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
-                array(),
-                '2.0.0',
-                true
-            );
-        }
-
-        if ( $screen && $screen->id === 'paybutton_page_paybutton-paywall' ) {
+        // 1) Paywall Settings page
+        if ( $hook_suffix === 'paybutton_page_paybutton-paywall' ) {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );
 
@@ -142,7 +134,8 @@ class PayButton_Admin {
             );
         }
 
-        if ( $screen && $screen->id === 'paybutton_page_paybutton-generator' ) {
+        // 2) Button Generator page
+        if ( $hook_suffix === 'paybutton_page_paybutton-generator' ) {
             wp_enqueue_script(
                 'address-validator',
                 PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
@@ -164,6 +157,20 @@ class PayButton_Admin {
                 PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-generator.js',
                 array('jquery','paybutton-core','address-validator'),
                 '1.0',
+                true
+            );
+        }
+
+        // 3) WooCommerce → Settings → Payments (wallet address field)
+        if (
+            $hook_suffix === 'woocommerce_page_wc-settings'
+            || ( $screen && $screen->base === 'woocommerce_page_wc-settings' )
+        ) {
+            wp_enqueue_script(
+                'address-validator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
+                array(),
+                '2.0.0',
                 true
             );
         }
