@@ -23,11 +23,11 @@
                 Paywall Settings
             </a>
         </div>
-        <!-- Button 3: PayButton WooComerce (Coming soon) -->
-        <div class="paybutton-dashboard-button disabled">
-            <p class="paybutton-dashboard-text">
-                PayButton WooComerce – Coming soon!
-            </p>
+        <!-- Button 3: PayButton WooComerce -->
+        <div class="paybutton-dashboard-button">
+            <a href="<?php echo esc_url( $woocommerce_payments_url ); ?>" class="button button-primary paybutton-dashboard-link">
+                    WooCommerce Payments
+            </a>
         </div>
     </div>
 

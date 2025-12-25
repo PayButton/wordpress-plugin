@@ -42,7 +42,7 @@ class PayButton_Admin {
         add_submenu_page(
             'paybutton',
             'Button Generator',
-            'Button Generator <span class="pb-menu-new">NEW!</span>',
+            'Button Generator',
             'manage_options',
             'paybutton-generator',
             array( $this, 'button_generator_page' )
@@ -192,7 +192,8 @@ class PayButton_Admin {
     public function dashboard_page() {
         $args = array(
             'generate_button_url'  => esc_url( admin_url( 'admin.php?page=paybutton-generator' ) ),
-            'paywall_settings_url' => esc_url( admin_url( 'admin.php?page=paybutton-paywall' ) )
+            'paywall_settings_url' => esc_url( admin_url( 'admin.php?page=paybutton-paywall' ) ),
+            'woocommerce_payments_url'=> esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout' ) )
         );
         $this->load_admin_template( 'dashboard', $args );
     }
