@@ -200,7 +200,8 @@ class PayButton_Admin {
         $args = array(
             'generate_button_url'  => esc_url( admin_url( 'admin.php?page=paybutton-generator' ) ),
             'paywall_settings_url' => esc_url( admin_url( 'admin.php?page=paybutton-paywall' ) ),
-            'woocommerce_payments_url'=> esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout' ) )
+            'woocommerce_payments_url'=> esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout' ) ),
+            'woocommerce_installed'     => class_exists( 'WooCommerce' )
         );
         $this->load_admin_template( 'dashboard', $args );
     }

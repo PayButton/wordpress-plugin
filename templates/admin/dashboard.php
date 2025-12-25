@@ -25,9 +25,22 @@
         </div>
         <!-- Button 3: PayButton WooCommerce -->
         <div class="paybutton-dashboard-button">
-            <a href="<?php echo esc_url( $woocommerce_payments_url ); ?>" class="button button-primary paybutton-dashboard-link">
+            <?php if ( ! empty( $woocommerce_installed ) ) : ?>
+
+                <a href="<?php echo esc_url( $woocommerce_payments_url ); ?>"
+                class="button button-primary paybutton-dashboard-link">
                     WooCommerce Payments
-            </a>
+                </a>
+
+            <?php else : ?>
+
+                <a href="#"
+                class="button button-secondary paybutton-dashboard-link paybutton-disabled"
+                onclick="alert('WooCommerce is not installed. Please install and activate WooCommerce first.'); return false;">
+                    WooCommerce Payments
+                </a>
+
+            <?php endif; ?>
         </div>
     </div>
 
