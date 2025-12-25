@@ -24,13 +24,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'PAYBUTTON_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PAYBUTTON_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+// NEW: Declare HPOS Compatibility for WooCommerce
+// This must run on 'before_woocommerce_init' to ensure WooCommerce knows we support custom order tables.
+add_action( 'before_woocommerce_init', function() {
+    if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+    }
+} );
+
 // Include required class files.
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-activator.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-deactivator.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-admin.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-public.php';
+require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-transactions.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-ajax.php';
 require_once PAYBUTTON_PLUGIN_DIR . 'includes/class-paybutton-state.php';
+
+// --- NEW: Include WooCommerce Gateway ---
+// We load this file, but the class inside it initiates itself safely on 'plugins_loaded'
+if ( file_exists( PAYBUTTON_PLUGIN_DIR . 'includes/woocommerce/class-wc-gateway-paybutton.php' ) ) {
+    require_once PAYBUTTON_PLUGIN_DIR . 'includes/woocommerce/class-wc-gateway-paybutton.php';
+}
 
 /**
  * Registers the plugin's activation and deactivation hooks.
@@ -61,12 +76,42 @@ add_action( 'plugins_loaded', function() {
     new PayButton_AJAX();
 }, 1);  // Use a priority to ensure this runs before other actions that might depend on session data.
 
+// 1. Register the Gateway
+add_filter( 'woocommerce_payment_gateways', 'paybutton_add_gateway_class' );
+
+function paybutton_add_gateway_class( $gateways ) {
+    if ( class_exists( 'WC_Gateway_PayButton' ) ) {
+        $gateways[] = 'WC_Gateway_PayButton';
+    }
+    return $gateways;
+}
+
+// 2. Register Gutenberg Block Support
+add_action( 'woocommerce_blocks_payment_method_type_registration', 'paybutton_register_blocks_support' );
+
+function paybutton_register_blocks_support( \Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+    // Ensure WooCommerce Blocks class exists
+    if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+        return;
+    }
+
+    $block_support_file = PAYBUTTON_PLUGIN_DIR . 'includes/woocommerce/class-paybutton-blocks-support.php';
+    
+    if ( file_exists( $block_support_file ) ) {
+        require_once $block_support_file;
+        
+        if ( class_exists( 'WC_PayButton_Blocks_Support' ) ) {
+            $payment_method_registry->register( new WC_PayButton_Blocks_Support() );
+        }
+    }
+}
+
 add_action('admin_init', function() {
     if (get_option('paybutton_activation_redirect', false)) {
         delete_option('paybutton_activation_redirect');
         // Prevent redirect during bulk plugin activation
         if (!isset($_GET['activate-multi'])) {
-            wp_redirect(admin_url('admin.php?page=paybutton-paywall'));
+            wp_safe_redirect(admin_url('admin.php?page=paybutton-paywall'));
             exit;
         }
     }

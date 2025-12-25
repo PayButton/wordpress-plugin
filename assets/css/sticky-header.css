@@ -117,7 +117,7 @@
 }
 
 /* Prevent header from overlapping content */
-body {
+body.pb-has-sticky-header {
     padding-top: 80px !important;
 }
 

@@ -19,17 +19,11 @@ class PayButton_Activator {
         self::create_profile_page();
         // Set a flag to redirect the admin to the Paywall Settings page after activation
         update_option('paybutton_activation_redirect', true);
-        self::migrate_old_option();
+        //self::migrate_old_option();
     }
 
     private static function migrate_old_option() {
-        // --- 1. unlocked‑indicator colours ---
-        $txt_old = get_option( 'paybutton_unlocked_indicator_text_color', '' );
-        $txt_new = get_option( 'paybutton_unlocked_indicator_color', '' );
-        if ( ! empty( $txt_old ) && empty( $txt_new ) ) {
-            update_option( 'paybutton_unlocked_indicator_color', $txt_old );
-            delete_option( 'paybutton_unlocked_indicator_text_color' );
-        }
+        // Empty function for future use
     }
 
     /**
@@ -55,7 +49,7 @@ class PayButton_Activator {
             PRIMARY KEY (id),
             KEY pb_paywall_user_wallet_address_idx (pb_paywall_user_wallet_address),
             KEY post_id_idx (post_id),
-            KEY tx_hash_idx (tx_hash),
+            UNIQUE KEY tx_hash_idx (tx_hash),
             KEY unlock_token_idx (unlock_token)
         ) $charset_collate;";
 
@@ -75,7 +69,7 @@ class PayButton_Activator {
             used TINYINT(1) NOT NULL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
-            KEY tx_hash_idx (tx_hash),
+            UNIQUE KEY tx_hash_idx (tx_hash),
             KEY wallet_addr_idx (wallet_address(190)),
             KEY used_idx (used),
             KEY login_token_idx (login_token)

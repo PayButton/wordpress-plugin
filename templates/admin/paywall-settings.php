@@ -138,6 +138,24 @@
                 <th colspan="2"><h2>Sticky Header Settings</h2></th>
             </tr>
             <tr>
+                <th scope="row">
+                    <?php esc_html_e( 'Sticky Header', 'paybutton' ); ?>
+                </th>
+                <td>
+                    <label>
+                        <input type="checkbox"
+                            name="paybutton_hide_sticky_header"
+                            value="1"
+                            <?php checked( get_option( 'paybutton_hide_sticky_header', '0' ), '1' ); ?>
+                        />
+                        <?php esc_html_e( 'Disable sticky header sitewide', 'paybutton' ); ?>
+                    </label>
+                    <p class="description">
+                        <?php esc_html_e( 'If enabled, the sticky header will not be rendered.', 'paybutton' ); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
                 <th scope="row"><label for="sticky_header_bg_color">Sticky Header Background Color</label></th>
                 <td>
                     <input type="color" name="sticky_header_bg_color" id="sticky_header_bg_color" value="<?php echo esc_attr( $sticky_header_bg_color ); ?>">
@@ -257,6 +275,7 @@
 "tx_amount": &lt;amount&gt;,
 "tx_timestamp": &lt;timestamp&gt;,
 "user_address": &lt;inputAddresses&gt;,
+"value": &lt;value&gt;,
 "currency": &lt;currency&gt;
 }</pre>
                             <p>

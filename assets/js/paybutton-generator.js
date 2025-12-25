@@ -4,44 +4,6 @@
   "use strict";
 
   /* ==========================================================================
-      ADMIN WALLET ADDRESS VALIDATION
-     ========================================================================== 
-  */
-  if ($('#pbGenTo').length) {
-
-    const $toField = $('#pbGenTo');
-    let $validationMsg;
-
-    if (!$('#pbGenToValidationResult').length) {
-      $toField.after('<p id="pbGenToValidationResult"></p>');
-    }
-    $validationMsg = $('#pbGenToValidationResult');
-
-    $toField.on('input', function() {
-      const address = $toField.val().trim();
-
-      if (!address) {
-        $validationMsg.text('').css('color', '');
-        return;
-      }
-
-      const valid = window.cashaddrExports && window.cashaddrExports.isValidCashAddress(address);
-      if (typeof window.cashaddrExports === 'undefined') {
-        console.error('[PayButton] addressValidator is missing or not loaded!');
-      }
-
-      if (valid) {
-        $validationMsg.text('✅ Valid address').css('color', 'green');
-      } else {
-        $validationMsg.text('❌ Invalid address').css('color', 'red');
-      }
-    });
-
-    // Trigger input event on page load to validate pre-set value (from Paywall Settings).
-    $toField.trigger('input');
-  }
-
-  /* ==========================================================================
      BUTTON GENERATOR LOGIC
      ========================================================================== 
   */

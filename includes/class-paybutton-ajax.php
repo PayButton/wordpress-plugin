@@ -54,6 +54,10 @@ class PayButton_AJAX {
         // AJAX endpoint to get sticky header HTML for auto-login after content unlock
         add_action( 'wp_ajax_paybutton_get_sticky_header', array( $this, 'get_sticky_header' ) );
         add_action( 'wp_ajax_nopriv_paybutton_get_sticky_header', array( $this, 'get_sticky_header' ) );
+
+        // WooCommerce Order Status Polling
+        add_action( 'wp_ajax_paybutton_check_order_status', array( $this, 'check_order_status' ) );
+        add_action( 'wp_ajax_nopriv_paybutton_check_order_status', array( $this, 'check_order_status' ) );
     }
     /**
      * Payment Trigger Handler with Cryptographic Verification
@@ -103,6 +107,7 @@ class PayButton_AJAX {
         $ts_raw         = $json['tx_timestamp']           ?? 0;
         $user_addr_raw  = $json['user_address'][0]['address'] ?? ($json['user_address'][0] ?? '');
         $currency_raw   = $json['currency']               ?? '';
+        $fiatValue      = $json['value']                  ?? 0;
 
         unset( $json );   // discard the rest immediately
 
@@ -119,17 +124,42 @@ class PayButton_AJAX {
         }
 
         // Verify the signature
-        $verification_result = $this->verify_signature($payload, $signature, $public_key);
+        $verification_result = PayButton_Transactions::verify_signature(
+            $payload,
+            $signature,
+            $public_key
+        );
+
         if (!$verification_result) {
             wp_send_json_error(['message' => 'Signature verification failed.']);
             return;
         }
         // error_log('[paybutton] signature ok');
 
+        // Ensure OP_RETURN (rawMessage) is cryptographically bound to the payload
+        $op_return = (string) $post_id_raw;
+        $op_return = trim($op_return);
+
+        if ( $op_return === '' || strpos( $payload, $op_return ) === false ) {
+            wp_send_json_error(
+                [ 'message' => 'Payload does not match OP_RETURN.' ],
+                400
+            );
+            return;
+        }
+
+        if ( $tx_hash_raw && strpos( $payload, $tx_hash_raw ) === false ) {
+            wp_send_json_error(
+                [ 'message' => 'Payload does not match tx_hash.' ],
+                400
+            );
+            return;
+        }
+
         //Sanitize data
         $post_id      = intval( $post_id_raw );
         $tx_hash      = sanitize_text_field( $tx_hash_raw );
-        $tx_amount    = sanitize_text_field( $tx_amount_raw );
+        $tx_amount = (float) $tx_amount_raw;
         $tx_timestamp = intval( $ts_raw );
         $user_address = sanitize_text_field( $user_addr_raw );
         $currency     = sanitize_text_field( $currency_raw );
@@ -147,37 +177,54 @@ class PayButton_AJAX {
                 return;
             }
 
-            global $wpdb;
-            $login_table = $wpdb->prefix . 'paybutton_logins';
-
-            // Idempotency: avoid dupes on replays
-            $exists = $wpdb->get_var( $wpdb->prepare(
-                "SELECT id FROM {$login_table} WHERE wallet_address = %s AND tx_hash = %s LIMIT 1",
-                $user_address, $tx_hash
-            ) );
-            //error_log('[paybutton] login-branch addr=' . $user_address . ' tx=' . $tx_hash . ' ts=' . $tx_timestamp);
-            if ( ! $exists ) {
-                $wpdb->insert(
-                    $login_table,
-                    array(
-                        'wallet_address' => $user_address,
-                        'tx_hash'        => $tx_hash,
-                        'tx_amount'      => (float) $tx_amount,
-                        'tx_timestamp'   => (int) $tx_timestamp,
-                        'used'           => 0,
-                    ),
-                    array('%s','%s','%f','%d','%d')
-                );
-            }
-
-            // if ($wpdb->last_error) {
-            //     error_log('[paybutton] insert error: ' . $wpdb->last_error);
-            // } else {
-            //     error_log('[paybutton] insert ok id=' . $wpdb->insert_id);
-            // }
+            PayButton_Transactions::record_login_tx_if_new(
+                $user_address,
+                $tx_hash,
+                (float) $tx_amount,
+                (int) $tx_timestamp
+            );
 
             wp_send_json_success(['message' => 'Login tx recorded']);
             return;
+        }
+
+        // --- BRANCH 2: WOOCOMMERCE PAYMENTS ---
+        if ( class_exists( 'WooCommerce' ) ) {
+            $order = wc_get_order( $post_id );
+            
+            if ( $order && $order instanceof WC_Order ) {
+                
+                // 1. Check if already paid
+                if ( $order->is_paid() ) {
+                    wp_send_json_success( array( 'message' => 'Order already paid' ) );
+                    return;
+                }
+
+                // 2. Validate Amount using Fiat Value (USD) from Webhook
+                // We compare the webhook's USD value ($fiatValue) against the Order Total.
+                
+                $expected_fiat = (float) $order->get_total();
+                // Allow small epsilon for floating point math
+                if ( $fiatValue < ( $expected_fiat - 0.05 ) ) {
+                     // Add note about underpayment but don't mark complete yet
+                     $order->add_order_note( sprintf( 'Underpayment detected. Expected $%s but received $%s worth of crypto. Tx: %s', $expected_fiat, $fiatValue, $tx_hash ) );
+                     wp_send_json_error( array( 'message' => 'Insufficient fiat value.' ), 400 );
+                     return;
+                }
+
+                // 3. Mark as Paid
+                $order->payment_complete( $tx_hash );
+                
+                // 4. Add informative note
+                $note = sprintf( 'PayButton Payment Received via Webhook. Value: $%s. Tx Hash: %s', $fiatValue, $tx_hash );
+                $order->add_order_note( $note );
+                $order->update_meta_data( '_paybutton_tx_hash', $tx_hash );
+                $order->update_meta_data( '_paybutton_fiat_value', $fiatValue );
+                $order->save();
+                
+                wp_send_json_success( array( 'message' => 'WooCommerce Order Updated' ) );
+                return; // Stop processing
+            }
         }
         // Convert timestamp to MySQL datetime
         $mysql_timestamp = $tx_timestamp ? gmdate('Y-m-d H:i:s', $tx_timestamp) : '0000-00-00 00:00:00';
@@ -204,7 +251,7 @@ class PayButton_AJAX {
         }
 
         // Get expected price and unit by parsing shortcode in the post content
-        $required = $this->paybutton_get_paywall_requirements( $post_id );
+        $required = PayButton_Transactions::get_paywall_requirements( $post_id );
         if ( $required === null ) {
             wp_send_json_error( array( 'message' => 'Post not configured for paywall.' ), 400 );
             return;
@@ -212,28 +259,29 @@ class PayButton_AJAX {
 
         $expected_price = floatval( $required['price'] );
         $expected_unit = strtoupper( $required['unit'] );
-
-
-        // Numeric amount check
-        $paid_amount = floatval( $tx_amount );
-        $epsilon = 0.05; // tolerance for rounding differences
-        if ( $paid_amount + $epsilon < $expected_price ) {
-            wp_send_json_error( array( 'message' => 'Underpaid transaction ignored.' ), 400 );
-            return;
-        }
-
-        if ( $incoming_unit !== $expected_unit ) {
-            wp_send_json_error( array( 'message' => 'Currency/unit mismatch.' ), 400 );
+        
+        if (
+            ! PayButton_Transactions::validate_price_and_unit(
+                (float) $tx_amount,
+                $incoming_unit,
+                $expected_price,
+                $expected_unit
+            )
+        ) {
+            wp_send_json_error(
+                array( 'message' => 'Invalid payment amount or currency.' ),
+                400
+            );
             return;
         }
 
         // Passed validation -> store unlock in DB
         $is_logged_in = 0;
-        $this->store_unlock_in_db(
+        PayButton_Transactions::insert_unlock_if_new(
             sanitize_text_field( $user_address ),
             $post_id,
             sanitize_text_field( $tx_hash ),
-            floatval( $tx_amount ),
+            (float) $tx_amount,
             $mysql_timestamp,
             $is_logged_in
         );
@@ -241,92 +289,6 @@ class PayButton_AJAX {
         wp_send_json_success();
     }
 
-    // Verify the signature using the public key
-    private function verify_signature($payload, $signature, $public_key_hex) {
-        // Convert hex signature to binary
-        $binary_signature = hex2bin($signature);
-        if (!$binary_signature) {
-            return false;
-        }
-
-        // Convert hex public key to binary
-        $binary_public_key = hex2bin($public_key_hex);
-        if (!$binary_public_key) {
-            return false;
-        }
-
-        // If the public key is in DER format (44 bytes), extract the raw 32-byte key.
-        if (strlen($binary_public_key) === 44) {
-            $raw_public_key = substr($binary_public_key, 12);
-        } else {
-            $raw_public_key = $binary_public_key;
-        }
-
-        // Ensure payload is in exact binary format
-        $binary_payload = mb_convert_encoding($payload, 'ISO-8859-1', 'UTF-8');
-
-        // Verify signature using Sodium (Ed25519)
-        $verification = sodium_crypto_sign_verify_detached($binary_signature, $binary_payload, $raw_public_key);
-
-        if ($verification) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Get expected paywall price and unit for a post/page by parsing its
-     * first [paywalled_content] shortcode.
-     *
-     * @param int $post_id
-     * @return array|null Array( 'price' => float, 'unit' => string ) or null if not paywalled.
-    */
-    private function paybutton_get_paywall_requirements( $post_id ) {
-        $post_id = absint( $post_id );
-        if ( ! $post_id ) {
-            return null;
-        }
-
-        $post = get_post( $post_id );
-        if ( ! $post || ! isset( $post->post_content ) ) {
-            return null;
-        }
-
-        $content = $post->post_content;
-
-        // Capture the first [paywalled_content ...] opening tag attributes
-        if ( preg_match( '/\[paywalled_content([^\]]*)\]/i', $content, $matches ) ) {
-            $atts_raw = isset( $matches[1] ) ? $matches[1] : '';
-            $atts     = shortcode_parse_atts( $atts_raw );
-
-            $price = null;
-            $unit  = '';
-
-            if ( isset( $atts['price'] ) && $atts['price'] !== '' ) {
-                $price = floatval( trim( $atts['price'] ) );
-            }
-
-            if ( isset( $atts['unit'] ) && $atts['unit'] !== '' ) {
-                $unit  = strtoupper( sanitize_text_field( trim( $atts['unit'] ) ) );
-            }
-
-            // Fallbacks to plugin options
-            if ( $price === null || $price === 0.0 ) {
-                $price = floatval( get_option( 'paybutton_paywall_default_price', 5.5 ) );
-            }
-            if ( $unit === '' ) {
-                $unit = strtoupper( sanitize_text_field( get_option( 'paybutton_paywall_unit', 'XEC' ) ) );
-            }
-
-            return array(
-                'price' => $price,
-                'unit'  => $unit,
-            );
-        }
-
-        return null;
-    }
     /**
      * The following function sets the user's wallet address in a cookie via AJAX after
      * a successful login transaction.
@@ -392,11 +354,11 @@ class PayButton_AJAX {
 
         $post_id      = isset( $_POST['post_id'] ) ? intval( $_POST['post_id'] ) : 0;
         $tx_hash      = isset( $_POST['tx_hash'] ) ? sanitize_text_field( $_POST['tx_hash'] ) : '';
-        $tx_amount    = isset( $_POST['tx_amount'] ) ? sanitize_text_field( $_POST['tx_amount'] ) : '';
+        $tx_amount    = isset( $_POST['tx_amount'] ) ? (float) $_POST['tx_amount'] : 0.0;
         $tx_timestamp = isset( $_POST['tx_timestamp'] ) ? sanitize_text_field( $_POST['tx_timestamp'] ) : '';
         // NEW: Address passed from front-end if user is not logged in
         $user_address = isset( $_POST['user_address'] ) ? sanitize_text_field( $_POST['user_address'] ) : '';
-        $unlock_token  = isset( $_POST['unlock_token'] ) ? sanitize_text_field( $_POST['unlock_token'] ) : '';
+        $unlock_token = isset( $_POST['unlock_token'] ) ? sanitize_text_field( $_POST['unlock_token'] ) : '';
 
         if ( $post_id <= 0 || empty( $tx_hash ) || empty( $user_address ) || empty( $unlock_token ) ) {
                 wp_send_json_error( array( 'message' => 'Missing required payment fields.' ), 400 );
@@ -562,38 +524,6 @@ class PayButton_AJAX {
     }
 
     /**
-     * Store the unlock information in the database.
-    */
-    private function store_unlock_in_db( $address, $post_id, $tx_hash, $tx_amount, $tx_dt, $is_logged_in ) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'paybutton_paywall_unlocked';
-
-        // Check if the transaction already exists using tx hash
-        $exists = $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM $table_name WHERE tx_hash = %s LIMIT 1",
-            $tx_hash
-        ));
-
-        if ($exists) {
-            return; // Transaction already recorded, so we don't insert again.
-        }
-
-        // Insert the transaction if it's not already recorded
-        $wpdb->insert(
-            $table_name,
-            array(
-                'pb_paywall_user_wallet_address' => $address,
-                'post_id'       => $post_id,
-                'tx_hash'       => $tx_hash,
-                'tx_amount'     => $tx_amount,
-                'tx_timestamp'  => $tx_dt,
-                'is_logged_in'  => $is_logged_in,
-            ),
-            array( '%s', '%d', '%s', '%f', '%s', '%d' )
-        );
-    }
-
-    /**
      * AJAX endpoint to validate a login transaction.
      * This checks that the provided wallet address and tx hash correspond to
      * an unused login transaction. If valid, it generates and attaches a login token 
@@ -610,41 +540,21 @@ class PayButton_AJAX {
         }
 
         global $wpdb;
-        $table = $wpdb->prefix . 'paybutton_logins';
 
-        // Only accept unused login tx rows
-        $row = $wpdb->get_row($wpdb->prepare(
-            "SELECT id FROM {$table}
-            WHERE wallet_address = %s AND tx_hash = %s AND used = 0
-            ORDER BY id DESC LIMIT 1",
-            $wallet_address, $tx_hash
-        ));
-
-        if (!$row) {
-            wp_send_json_error('Login validation failed'); // no match or already used
-        }
-
-        // Generate a random, unguessable token like "9fx0..._..." so that malicious actors
-        // can't fake login attempts by reusing the same wallet address + tx hash using fake
-        // AJAX calls from the browser.
-        $raw  = random_bytes(18); // 18 bytes → ~24 chars base64url
-        $token = rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
-
-        // Mark as used + attach token
-        $wpdb->update(
-            $table,
-            array(
-                'used'        => 1,
-                'login_token' => $token,
-            ),
-            array('id' => (int)$row->id),
-            array('%d','%s'),
-            array('%d')
+        $token = PayButton_Transactions::consume_row_and_attach_token(
+            $wpdb->prefix . 'paybutton_logins',
+            [
+                'wallet_address' => $wallet_address,
+                'tx_hash'        => $tx_hash,
+            ],
+            'login_token'
         );
 
-        wp_send_json_success(array(
-            'login_token' => $token,
-        ));
+        if (!$token) {
+            wp_send_json_error('Login validation failed');
+        }
+
+        wp_send_json_success(['login_token' => $token]);
     }
 
     /**
@@ -665,45 +575,22 @@ class PayButton_AJAX {
         }
 
         global $wpdb;
-        $table = $wpdb->prefix . 'paybutton_paywall_unlocked';
 
-        // Only accept unused unlock rows matching this wallet + tx + post
-        $row = $wpdb->get_row($wpdb->prepare(
-            "SELECT id FROM {$table}
-            WHERE pb_paywall_user_wallet_address = %s
-            AND tx_hash = %s
-            AND post_id = %d
-            AND used = 0
-            ORDER BY id DESC
-            LIMIT 1",
-            $wallet_address,
-            $tx_hash,
-            $post_id
-        ));
-
-        if (!$row) {
-            wp_send_json_error('Unlock validation failed'); // no match or already used
-        }
-
-        // Generate a random, unguessable token
-        $raw   = random_bytes(18); // ~24 chars base64url
-        $token = rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
-
-        // Mark row as used + attach unlock token
-        $wpdb->update(
-            $table,
-            array(
-                'used'         => 1,
-                'unlock_token' => $token,
-            ),
-            array( 'id' => (int) $row->id ),
-            array( '%d', '%s' ),
-            array( '%d' )
+        $token = PayButton_Transactions::consume_row_and_attach_token(
+            $wpdb->prefix . 'paybutton_paywall_unlocked',
+            [
+                'pb_paywall_user_wallet_address' => $wallet_address,
+                'tx_hash' => $tx_hash,
+                'post_id' => $post_id,
+            ],
+            'unlock_token'
         );
 
-        wp_send_json_success(array(
-            'unlock_token' => $token,
-        ));
+        if (!$token) {
+            wp_send_json_error('Unlock validation failed');
+        }
+
+        wp_send_json_success(['unlock_token' => $token]);
     }
 
     /** 
@@ -711,6 +598,10 @@ class PayButton_AJAX {
     */
     public function get_sticky_header() {
         check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
+
+        if ( get_option( 'paybutton_hide_sticky_header', '0' ) === '1' ) {
+            wp_send_json_success( array( 'html' => '' ) );
+        }
 
         $template = PAYBUTTON_PLUGIN_DIR . 'templates/public/sticky-header.php';
         if ( ! file_exists( $template ) ) {
@@ -727,5 +618,28 @@ class PayButton_AJAX {
         wp_send_json_success( array(
             'html' => $html,
         ) );
+    }
+
+    /**
+     * Polls to see if a WooCommerce order has been paid.
+    */
+    public function check_order_status() {
+        check_ajax_referer( 'paybutton_paywall_nonce', 'security' );
+        
+        if ( ! class_exists( 'WooCommerce' ) ) wp_send_json_error();
+
+        $order_id = isset( $_POST['order_id'] ) ? intval( $_POST['order_id'] ) : 0;
+        $order    = wc_get_order( $order_id );
+
+        if ( $order && $order->is_paid() ) {
+            wp_send_json_success();
+        }
+        
+        // Also check if status is processing (for manual verification workflows)
+        if ( $order && ( $order->has_status( 'processing' ) || $order->has_status( 'completed' ) ) ) {
+            wp_send_json_success();
+        }
+
+        wp_send_json_error();
     }
 }

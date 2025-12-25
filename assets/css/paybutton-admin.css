@@ -82,6 +82,12 @@
     border: none;
 }
 
+/* Disabled state for buttons*/
+.paybutton-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 /* ------------------------------
    Button Generator Page Styles
 ------------------------------ */
