@@ -42,7 +42,7 @@ class PayButton_Admin {
         add_submenu_page(
             'paybutton',
             'Button Generator',
-            'Button Generator <span class="pb-menu-new">NEW!</span>',
+            'Button Generator',
             'manage_options',
             'paybutton-generator',
             array( $this, 'button_generator_page' )
@@ -85,7 +85,7 @@ class PayButton_Admin {
         ) {
             $this->save_settings();
             wp_cache_delete( 'paybutton_admin_wallet_address', 'options' );
-            wp_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
+            wp_safe_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
             exit;
         }
     }      
@@ -99,7 +99,7 @@ class PayButton_Admin {
      * color selection functionality.
     */
     public function enqueue_admin_scripts( $hook_suffix ) {
-        // Enqueue the paybutton-admin.css on every admin page
+
         wp_enqueue_style(
             'paybutton-admin',
             PAYBUTTON_PLUGIN_URL . 'assets/css/paybutton-admin.css',
@@ -116,6 +116,10 @@ class PayButton_Admin {
             true
         );
 
+        // --- SAFE SCREEN DETECTION ---
+        $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+        // 1) Paywall Settings page
         if ( $hook_suffix === 'paybutton_page_paybutton-paywall' ) {
             wp_enqueue_style( 'wp-color-picker' );
             wp_enqueue_script( 'wp-color-picker' );
@@ -130,10 +134,8 @@ class PayButton_Admin {
             );
         }
 
-        // Only load the generator JS on the PayButton Generator page
+        // 2) Button Generator page
         if ( $hook_suffix === 'paybutton_page_paybutton-generator' ) {
-
-            // Enqueue the bundled address validator script
             wp_enqueue_script(
                 'address-validator',
                 PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
@@ -155,6 +157,20 @@ class PayButton_Admin {
                 PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton-generator.js',
                 array('jquery','paybutton-core','address-validator'),
                 '1.0',
+                true
+            );
+        }
+
+        // 3) WooCommerce → Settings → Payments (wallet address field)
+        if (
+            $hook_suffix === 'woocommerce_page_wc-settings'
+            || ( $screen && $screen->base === 'woocommerce_page_wc-settings' )
+        ) {
+            wp_enqueue_script(
+                'address-validator',
+                PAYBUTTON_PLUGIN_URL . 'assets/js/addressValidator.bundle.js',
+                array(),
+                '2.0.0',
                 true
             );
         }
@@ -183,7 +199,9 @@ class PayButton_Admin {
     public function dashboard_page() {
         $args = array(
             'generate_button_url'  => esc_url( admin_url( 'admin.php?page=paybutton-generator' ) ),
-            'paywall_settings_url' => esc_url( admin_url( 'admin.php?page=paybutton-paywall' ) )
+            'paywall_settings_url' => esc_url( admin_url( 'admin.php?page=paybutton-paywall' ) ),
+            'woocommerce_payments_url'=> esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout' ) ),
+            'woocommerce_installed'     => class_exists( 'WooCommerce' )
         );
         $this->load_admin_template( 'dashboard', $args );
     }
@@ -331,6 +349,11 @@ class PayButton_Admin {
             ? sanitize_hex_color( wp_unslash( $_POST['paybutton_frontend_unlock_color'] ) )
             : '#0074C2';
         update_option( 'paybutton_frontend_unlock_color', $frontend_unlock_color );
+
+        update_option(
+            'paybutton_hide_sticky_header',
+            isset( $_POST['paybutton_hide_sticky_header'] ) ? '1' : '0'
+        );
     }
 
     /**
