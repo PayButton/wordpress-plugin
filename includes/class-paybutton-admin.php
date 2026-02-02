@@ -116,6 +116,12 @@ class PayButton_Admin {
             ) &&
             current_user_can( 'manage_options' )
         ) {
+            if ( empty( $_POST['paybutton_public_key'] ) ) {
+                wp_safe_redirect(
+                    admin_url( 'admin.php?page=paybutton-settings&settings-updated=false' )
+                );
+                exit;
+            }
             $public_key = sanitize_text_field(
                 wp_unslash( $_POST['paybutton_public_key'] )
             );
