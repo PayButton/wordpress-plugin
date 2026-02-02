@@ -296,7 +296,7 @@ class PayButton_Admin {
 
         $args = array(
             'paybutton_public_key' => get_option( 'paybutton_public_key', '' ),
-            'settings_saved'       => isset( $_GET['settings-updated'] ),
+            'settings_saved'       => isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] === 'true',
         );
 
         $this->load_admin_template( 'settings', $args );
