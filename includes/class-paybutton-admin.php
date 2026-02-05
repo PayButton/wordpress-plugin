@@ -15,8 +15,8 @@ class PayButton_Admin {
         add_action( 'admin_menu', array( $this, 'add_admin_menus' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
         add_action( 'admin_notices', array( $this, 'admin_notice_missing_required_inputs' ) );
-        // Process form submissions early
-        add_action( 'admin_init', array( $this, 'handle_save_settings' ) );
+        // Handle settings save
+        add_action( 'admin_init', array( $this, 'process_settings_forms' ) );
 
         // New: Posts page PayButton Unlocks column
         add_filter( 'manage_edit-post_columns',          [ $this, 'register_paybutton_unlocks_column' ] );
@@ -74,9 +74,26 @@ class PayButton_Admin {
             'paybutton-paywall-content',
             array( $this, 'content_page' )
         );
+
+        add_submenu_page(
+            'paybutton',
+            'Settings',
+            'Settings',
+            'manage_options',
+            'paybutton-settings',
+            array( $this, 'settings_page' )
+        );
     }
 
-    public function handle_save_settings() {
+    /**
+     * Process all settings form submissions.
+     * Routes to appropriate handler based on which form was submitted.
+     */
+    public function process_settings_forms() {
+        if ( empty( $_POST ) ) {
+            return;
+        }
+        // Handle Paywall Settings save
         if (
             isset( $_POST['paybutton_paywall_save_settings'] ) &&
             isset( $_POST['paybutton_settings_nonce'] ) &&
@@ -88,7 +105,33 @@ class PayButton_Admin {
             wp_safe_redirect( admin_url( 'admin.php?page=paybutton-paywall&settings-updated=true' ) );
             exit;
         }
-    }      
+
+        // Handle Settings (public key) save
+        if (
+            isset( $_POST['paybutton_settings_save'] ) &&
+            isset( $_POST['paybutton_settings_nonce'] ) &&
+            wp_verify_nonce(
+                sanitize_text_field( wp_unslash( $_POST['paybutton_settings_nonce'] ) ),
+                'paybutton_settings_save'
+            ) &&
+            current_user_can( 'manage_options' )
+        ) {
+            if ( empty( $_POST['paybutton_public_key'] ) ) {
+                wp_safe_redirect(
+                    admin_url( 'admin.php?page=paybutton-settings&settings-updated=false' )
+                );
+                exit;
+            }
+            $public_key = sanitize_text_field(
+                wp_unslash( $_POST['paybutton_public_key'] )
+            );
+            update_option( 'paybutton_public_key', $public_key );
+            wp_safe_redirect(
+                admin_url( 'admin.php?page=paybutton-settings&settings-updated=true' )
+            );
+            exit;
+        }
+    }
 
     /**
      * This function is hooked into the admin_enqueue_scripts action. It receives a
@@ -240,12 +283,23 @@ class PayButton_Admin {
             'logout_button_text_color'  => get_option( 'paybutton_logout_button_text_color', '#FFFFFF' ),
             // blacklist
             'blacklist'                 => get_option( 'paybutton_blacklist', array() ),
-            //Public key
-            'paybutton_public_key'      => get_option( 'paybutton_public_key', '' ),
             // Login & content unlock cookie expiry (days)
             'paybutton_cookie_ttl_days' => get_option( 'paybutton_cookie_ttl_days', 0 ),
         );
         $this->load_admin_template( 'paywall-settings', $args );
+    }
+
+    public function settings_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $args = array(
+            'paybutton_public_key' => get_option( 'paybutton_public_key', '' ),
+            'settings_saved'       => isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] === 'true',
+        );
+
+        $this->load_admin_template( 'settings', $args );
     }
 
     public function admin_notice_missing_required_inputs() {
@@ -266,7 +320,9 @@ class PayButton_Admin {
         $public_key = get_option('paybutton_public_key', '');
         if (empty($public_key)) {
             echo '<div class="notice notice-error">';
-            echo '<p><strong>NOTICE:</strong> Please set your public key in <a href="' . esc_url(admin_url('admin.php?page=paybutton-paywall')) . '">Paywall Settings</a>.</p>';
+            echo '<p><strong>NOTICE:</strong> Please set your public key in 
+            <a href="' . esc_url( admin_url('admin.php?page=paybutton-settings') ) . '">
+            Settings</a>.</p>';
             echo '</div>';
         }
     }
@@ -333,11 +389,6 @@ class PayButton_Admin {
             $raw_blacklist = sanitize_text_field( $_POST['paybutton_blacklist'] );
             $blacklist = array_map( 'trim', explode( ',', $raw_blacklist ) );
             update_option( 'paybutton_blacklist', $blacklist );
-        }
-        //Adding the new public key option
-        if ( isset( $_POST['paybutton_public_key'] ) ) {
-            $public_key = sanitize_text_field( $_POST['paybutton_public_key'] );
-            update_option( 'paybutton_public_key', $public_key );
         }
         
         //Front‐end unlock count toggle
