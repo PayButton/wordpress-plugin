@@ -239,7 +239,7 @@ class PayButton_Public {
             ),
             'opReturn'    => (string) $post_id, //This is a hack to give the PB server the post ID to send it back to WP's DB
             'autoClose'   => true,
-            'api-base-url' => get_option( 'paybutton_api_base_url', 'https://paybutton.org' )
+            'apiBaseUrl'  => get_option( 'paybutton_api_base_url', 'https://paybutton.org' )
         );
 
         //NEW: If the admin enabled “Show Unlock Count on Front‐end,” and this post is NOT yet unlocked then display unlock count on the front end.
