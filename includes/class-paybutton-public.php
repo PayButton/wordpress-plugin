@@ -142,7 +142,7 @@ class PayButton_Public {
         }
 
         // Encode the config for a data attribute
-        $encodedConfig = wp_json_encode( $decoded );
+        $encodedConfig = wp_json_encode( $decoded, JSON_UNESCAPED_SLASHES );
 
         ob_start();
         ?>
@@ -239,7 +239,7 @@ class PayButton_Public {
             ),
             'opReturn'    => (string) $post_id, //This is a hack to give the PB server the post ID to send it back to WP's DB
             'autoClose'   => true,
-            'apiBaseUrl'  => get_option( 'paybutton_api_base_url', 'https://paybutton.org' )
+            'api-base-url' => get_option( 'paybutton_api_base_url', 'https://paybutton.org' )
         );
 
         //NEW: If the admin enabled “Show Unlock Count on Front‐end,” and this post is NOT yet unlocked then display unlock count on the front end.
@@ -274,7 +274,7 @@ class PayButton_Public {
             <?php echo wp_kses_post($unlock_label_html) ?>
             <div id="paybutton-container-<?php echo esc_attr( $post_id ); ?>"
                 class="paybutton-container"
-                data-config="<?php echo esc_attr( json_encode( $config ) ); ?>"
+                data-config="<?php echo esc_attr( wp_json_encode( $config, JSON_UNESCAPED_SLASHES ) ); ?>"
                 style="text-align: center;"></div>
         </div>
         <?php
