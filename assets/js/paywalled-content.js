@@ -125,6 +125,7 @@ jQuery(document).ready(function($) {
             theme: configData.theme,
             opReturn: configData.opReturn, // carries postID
             autoClose: configData.autoClose,
+            apiBaseUrl: configData.apiBaseUrl,
 
             onSuccess: function (tx) {
                 paymentInitiated = true;

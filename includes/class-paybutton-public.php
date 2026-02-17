@@ -126,6 +126,7 @@ class PayButton_Public {
             'userAddress' => sanitize_text_field( PayButton_State::get_address() ),
             'defaultAddress' => get_option( 'paybutton_admin_wallet_address', '' ),
             'scrollToUnlocked' => get_option( 'paybutton_scroll_to_unlocked', '1' ),
+            'apiBaseUrl'       => get_option( 'paybutton_api_base_url', 'https://paybutton.org' ),
         ) );
     }
 
@@ -237,7 +238,8 @@ class PayButton_Public {
                 ),
             ),
             'opReturn'    => (string) $post_id, //This is a hack to give the PB server the post ID to send it back to WP's DB
-            'autoClose'   => true
+            'autoClose'   => true,
+            'apiBaseUrl'  => get_option( 'paybutton_api_base_url', 'https://paybutton.org' )
         );
 
         //NEW: If the admin enabled “Show Unlock Count on Front‐end,” and this post is NOT yet unlocked then display unlock count on the front end.

@@ -182,7 +182,8 @@ function paybutton_init_wc_gateway() {
                 'opReturn'    => (string) $order_id, 
                 'successText' => 'Payment Received! Processing...',
                 'autoClose'   => true,
-                'size'        => 'xl'
+                'size'        => 'xl',
+                'apiBaseUrl'  => get_option( 'paybutton_api_base_url', 'https://paybutton.org' )
             );
 
             echo '<h2>Complete your payment</h2>';
