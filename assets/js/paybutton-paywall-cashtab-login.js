@@ -90,6 +90,7 @@ function renderLoginPaybutton() {
         successText: 'Login Successful!',
         autoClose: true,
         opReturn: 'login',
+        apiBaseUrl: PaywallAjax.apiBaseUrl,
         onSuccess: function (tx) {
             paymentInitiated = true;
             loginAddr = tx?.inputAddresses?.[0] ?? null;

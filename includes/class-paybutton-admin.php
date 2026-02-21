@@ -125,7 +125,14 @@ class PayButton_Admin {
             $public_key = sanitize_text_field(
                 wp_unslash( $_POST['paybutton_public_key'] )
             );
+            $api_base_url = isset( $_POST['paybutton_api_base_url'] )
+                ? esc_url_raw( wp_unslash( $_POST['paybutton_api_base_url'] ) )
+                : '';
+            if ( empty( $api_base_url ) ) {
+                $api_base_url = 'https://paybutton.org';
+            }
             update_option( 'paybutton_public_key', $public_key );
+            update_option( 'paybutton_api_base_url', $api_base_url );
             wp_safe_redirect(
                 admin_url( 'admin.php?page=paybutton-settings&settings-updated=true' )
             );
@@ -191,7 +198,7 @@ class PayButton_Admin {
                 'paybutton-core',
                 PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton.js',
                 array('address-validator'),
-                '5.0.2',
+                '5.3.0',
                 true
             );
 
@@ -296,6 +303,7 @@ class PayButton_Admin {
 
         $args = array(
             'paybutton_public_key' => get_option( 'paybutton_public_key', '' ),
+            'paybutton_api_base_url' => get_option( 'paybutton_api_base_url', 'https://paybutton.org' ),
             'settings_saved'       => isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] === 'true',
         );
 

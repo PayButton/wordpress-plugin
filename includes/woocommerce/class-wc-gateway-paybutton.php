@@ -182,11 +182,12 @@ function paybutton_init_wc_gateway() {
                 'opReturn'    => (string) $order_id, 
                 'successText' => 'Payment Received! Processing...',
                 'autoClose'   => true,
-                'size'        => 'xl'
+                'size'        => 'xl',
+                'apiBaseUrl'  => get_option( 'paybutton_api_base_url', 'https://paybutton.org' ),
             );
 
             echo '<h2>Complete your payment</h2>';
-            echo '<div class="paybutton-woo-container" data-config="' . esc_attr( wp_json_encode( $config ) ) . '" style="margin: 20px 0;"></div>';
+            echo '<div class="paybutton-woo-container" data-config="' . esc_attr( wp_json_encode( $config, JSON_UNESCAPED_SLASHES ) ) . '" style="margin: 20px 0;"></div>';
         }
 
         /**

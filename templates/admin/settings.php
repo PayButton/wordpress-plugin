@@ -91,6 +91,24 @@
                 </td>
             </tr>
 
+            <tr>
+                <th scope="row">
+                    <label for="paybutton_api_base_url">API Base URL (required)</label>
+                </th>
+                <td>
+                    <input
+                        type="url"
+                        name="paybutton_api_base_url"
+                        id="paybutton_api_base_url"
+                        class="regular-text"
+                        value="<?php echo esc_attr( $paybutton_api_base_url ); ?>"
+                        required
+                    >
+                    <p class="description">
+                        The API Base URL parameter specifies the URL for the API where information about new transactions, prices, and addresses will come from. Default is <code>https://paybutton.org</code>.
+                    </p>
+                </td>
+            </tr>
         </table>
 
         <p class="submit">
