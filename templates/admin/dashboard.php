@@ -8,7 +8,7 @@
         <img class="paybutton-logo" src="<?php echo esc_url( PAYBUTTON_PLUGIN_URL . 'assets/paybutton-logo.png' ); ?>" alt="PayButton Logo">
     </div>
     <!-- New heading above the buttons -->
-    <h2>Monetize your content with custom no-signup paywalls & donation buttons</h2>
+    <h2>Monetize your site with no-signup paywalls and WooCommerce checkout</h2>
 
     <div class="paybutton-dashboard-buttons">
         <!-- Button 1: Generate Button -->
