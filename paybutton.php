@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: PayButton
- * Description: Monetize your content with configurable no-signup paywalls.
+ * Description: Monetize your site with no-signup paywalls and WooCommerce checkout
  * Version: 6.0.0
  * Author: PayButton
  * Author URI:  https://github.com/PayButton/wordpress-plugin
