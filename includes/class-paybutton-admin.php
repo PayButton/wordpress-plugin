@@ -198,7 +198,7 @@ class PayButton_Admin {
                 'paybutton-core',
                 PAYBUTTON_PLUGIN_URL . 'assets/js/paybutton.js',
                 array('address-validator'),
-                '5.3.0',
+                '5.4.0',
                 true
             );
 
